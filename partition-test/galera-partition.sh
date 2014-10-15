@@ -46,7 +46,7 @@ linter="eth0"
 echo "
 [sst]
 sst-initial-timeout=$(( 50*NUMC ))
-" > /tmp/addnl.cnf
+" > /tmp/my.cnf
 
 if [[ $NUMC -lt 3 ]];then 
     echo "Specify at least 3 for nodes"
@@ -59,10 +59,10 @@ fi
 
 if [[ $PROVIDER == '1' ]];then 
     CMD+=" --wsrep-provider=/pxc/libgalera_smm.so"
-    PGALERA=" -v $PWD/libgalera_smm.so:/pxc/libgalera_smm.so -v /tmp/addnl.cnf:/pxc/my.cnf"
+    PGALERA=" -v $PWD/libgalera_smm.so:/pxc/libgalera_smm.so -v /tmp/my.cnf:/pxc/my.cnf"
     cp -v $PWD/libgalera_smm.so /pxc/
 else 
-    PGALERA="-v /tmp/addnl.cnf:/pxc/my.cnf"
+    PGALERA="-v /tmp/my.cnf:/pxc/my.cnf"
 fi
 
 
@@ -109,7 +109,7 @@ else
     fi
 fi 
 
-if bzr log -v -c-1  | grep -q '/Dockerfile';then 
+if git log --summary -1  | grep -q '/Dockerfile';then 
     skip=false
 fi
 
@@ -252,7 +252,9 @@ trap cleanup EXIT KILL
 preclean
 
 if [[ $skip == "false" ]];then
+    pushd ../docker-tarball
     docker build  --rm -q  -t ronin/pxc:tarball . 2>&1 | tee $LOGDIR/Dock-pxc.log 
+    popd
     # Required for core-dump analysis
     # rm -rf Percona-XtraDB-Cluster || true
 fi
