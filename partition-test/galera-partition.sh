@@ -53,6 +53,7 @@ if [[ $NUMC -lt 3 ]];then
     exit 1
 fi
 
+# Hack for jenkins only. uh.. 
 if [[ -n ${BUILD_NUMBER:-} && $(groups) != *docker* ]]; then
     exec sg docker "$0 $*"
 fi
@@ -275,13 +276,6 @@ docker run  -d  -t -i -v $HOSTSF:/dnsmasq.hosts --name dnscluster ronin/dnsmasq 
 
 dnsi=$(docker inspect  dnscluster | grep IPAddress | grep -oE '[0-9\.]+')
 
-
-intv=$(brctl show docker0  | tail -n +2 | grep -oE 'veth[a-z0-9]+' | head -1)
-echo "interface of dnscluster: $intv"
-
-#echo "Interfaces"
-#ip addr
-
 echo "Starting first node"
 
 if [[ $RSEGMENT == 1 ]];then 
@@ -317,8 +311,8 @@ mysql -S $FIRSTSOCK -u root -e "create database testdb;" || true
 nexti=$firsti
 sleep 5
 
+
 for rest in `seq 2 $NUMC`; do
-    #sleep $(( rest**2 ))
     echo "Starting node#$rest"
     lasto=$(cut -d. -f4 <<< $nexti)
     nexti=$(cut -d. -f1-3 <<< $nexti).$(( lasto+1 ))
@@ -356,6 +350,7 @@ for s in `seq 2 $NUMC`;do
 done
 
 
+# Will be needed for LOSS-WITH-SST
 #int1=$(brctl show docker0  | tail -n +2 | grep -oE 'veth[a-z0-9]+' | head -1)
 #sudo tc qdisc add dev $int1 root netem delay $DELAY loss $LOSS
 
