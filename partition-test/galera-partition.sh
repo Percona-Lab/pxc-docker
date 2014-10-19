@@ -67,6 +67,7 @@ else
 fi
 
 
+pushd ../docker-tarball
 count=$(ls -1ct Percona-XtraDB-Cluster-*.tar.gz | wc -l)
 
 if [[ $count -eq 0 ]];then 
@@ -109,6 +110,7 @@ else
         skip=true
     fi
 fi 
+popd
 
 if git log --summary -1  | grep -q '/Dockerfile';then 
     skip=false
