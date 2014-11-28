@@ -12,7 +12,7 @@ wsrep_cluster_address=gcomm://
 wsrep_provider=/usr/lib64/galera3/libgalera_smm.so
 
 
-wsrep_cluster_name=Docker
+wsrep_cluster_name=PXC-Docker-release
 wsrep_node_name=Dock1
 
 innodb_locks_unsafe_for_binlog=1

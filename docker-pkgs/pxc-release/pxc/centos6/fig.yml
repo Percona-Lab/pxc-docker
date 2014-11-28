@@ -1,0 +1,29 @@
+pxc1:
+  build: .
+  hostname: Dock1
+  command: sh -c "/sbin/service mysql bootstrap-pxc --wsrep-node-name=Dock1  && tailf /dev/null"
+  ports:
+      - "3306"
+      - "4567"
+      - "4568"
+pxc2:
+  build: .
+  hostname: Dock2
+  command: sh -c "/bin/sleep 60 && /sbin/service mysql start --wsrep-node-name=Dock2 --wsrep_cluster_address=gcomm://Dock1 && tailf /dev/null"
+  links:
+      - pxc1:Dock1
+  ports:
+      - "3306"
+      - "4567"
+      - "4568"
+pxc3:
+  build: .
+  hostname: Dock3
+  command: sh -c "/bin/sleep 120 && /sbin/service mysql start --wsrep-node-name=Dock3 --wsrep_cluster_address=gcomm://Dock1,Dock2 && tailf /dev/null"
+  links:
+      - pxc1:Dock1
+      - pxc2:Dock2
+  ports:
+      - "3306"
+      - "4567"
+      - "4568"

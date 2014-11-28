@@ -1,0 +1,29 @@
+pxc1:
+  build: .
+  hostname: Dock1
+  command: sh -c "systemctl start mysql@bootstrap && journalctl -b -f"
+  ports:
+      - "3306"
+      - "4567"
+      - "4568"
+pxc2:
+  build: .
+  hostname: Dock2
+  command: sh -c "/bin/sleep 60 && /bin/echo EXTRA_ARGS=\" --wsrep-node-name=Dock2 --wsrep_cluster_address=gcomm://Dock1 \" > /etc/sysconfig/mysql.bootstrap && systemctl start mysql && journalctl -b -f"
+  links:
+      - pxc1:Dock1
+  ports:
+      - "3306"
+      - "4567"
+      - "4568"
+pxc3:
+  build: .
+  hostname: Dock3
+  command: sh -c "/bin/sleep 120 && /bin/echo EXTRA_ARGS=\" --wsrep-node-name=Dock3 --wsrep_cluster_address=gcomm://Dock1,Dock2 \" > /etc/sysconfig/mysql.bootstrap  && systemctl start mysql && journalctl -b -f"
+  links:
+      - pxc1:Dock1
+      - pxc2:Dock2
+  ports:
+      - "3306"
+      - "4567"
+      - "4568"
