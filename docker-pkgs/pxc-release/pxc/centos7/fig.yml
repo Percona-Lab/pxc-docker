@@ -1,7 +1,7 @@
 pxc1:
   build: .
   hostname: Dock1
-  command: sh -c "systemctl start mysql@bootstrap && journalctl -b -f"
+  command: sh -c "/usr/sbin/mysqld --basedir=/usr --user=mysql --wsrep-new-cluster"
   ports:
       - "3306"
       - "4567"
@@ -9,7 +9,7 @@ pxc1:
 pxc2:
   build: .
   hostname: Dock2
-  command: sh -c "/bin/sleep 60 && /bin/echo EXTRA_ARGS=\" --wsrep-node-name=Dock2 --wsrep_cluster_address=gcomm://Dock1 \" > /etc/sysconfig/mysql.bootstrap && systemctl start mysql && journalctl -b -f"
+  command: sh -c "/bin/sleep 60 && /usr/sbin/mysqld --basedir=/usr --user=mysql --wsrep-node-name=Dock2 --wsrep_cluster_address=gcomm://Dock1"
   links:
       - pxc1:Dock1
   ports:
@@ -19,7 +19,7 @@ pxc2:
 pxc3:
   build: .
   hostname: Dock3
-  command: sh -c "/bin/sleep 120 && /bin/echo EXTRA_ARGS=\" --wsrep-node-name=Dock3 --wsrep_cluster_address=gcomm://Dock1,Dock2 \" > /etc/sysconfig/mysql.bootstrap  && systemctl start mysql && journalctl -b -f"
+  command: sh -c "/bin/sleep 120 && /usr/sbin/mysqld --basedir=/usr --user=mysql --wsrep-node-name=Dock3 --wsrep_cluster_address=gcomm://Dock1,Dock2"
   links:
       - pxc1:Dock1
       - pxc2:Dock2
