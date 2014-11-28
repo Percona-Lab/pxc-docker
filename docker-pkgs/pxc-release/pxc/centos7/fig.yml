@@ -1,7 +1,7 @@
 pxc1:
   build: .
   hostname: Dock1
-  command: sh -c "/usr/sbin/mysqld --basedir=/usr --user=mysql --wsrep-new-cluster"
+  command: sh -c "/usr/sbin/mysqld --basedir=/usr --user=mysql --wsrep-new-cluster --skip-grant-tables"
   ports:
       - "3306"
       - "4567"
@@ -9,7 +9,7 @@ pxc1:
 pxc2:
   build: .
   hostname: Dock2
-  command: sh -c "/bin/sleep 60 && /usr/sbin/mysqld --basedir=/usr --user=mysql --wsrep-node-name=Dock2 --wsrep_cluster_address=gcomm://Dock1"
+  command: sh -c "/bin/sleep 60 && /usr/sbin/mysqld --basedir=/usr --user=mysql --wsrep-node-name=Dock2 --wsrep_cluster_address=gcomm://Dock1 --skip-grant-tables"
   links:
       - pxc1:Dock1
   ports:
@@ -19,7 +19,7 @@ pxc2:
 pxc3:
   build: .
   hostname: Dock3
-  command: sh -c "/bin/sleep 120 && /usr/sbin/mysqld --basedir=/usr --user=mysql --wsrep-node-name=Dock3 --wsrep_cluster_address=gcomm://Dock1,Dock2"
+  command: sh -c "/bin/sleep 120 && /usr/sbin/mysqld --basedir=/usr --user=mysql --wsrep-node-name=Dock3 --wsrep_cluster_address=gcomm://Dock1,Dock2 --skip-grant-tables"
   links:
       - pxc1:Dock1
       - pxc2:Dock2
