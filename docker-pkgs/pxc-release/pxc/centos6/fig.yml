@@ -3,9 +3,9 @@ pxc1:
   hostname: Dock1
   command: sh -c "/sbin/service mysql bootstrap-pxc --wsrep-node-name=Dock1 --skip-grant-tables  && tailf /dev/null"
   ports:
-      - "3306"
-      - "4567"
-      - "4568"
+      - "10000:3306"
+      - "10001:4567"
+      - "10002:4568"
 pxc2:
   build: .
   hostname: Dock2
@@ -13,9 +13,9 @@ pxc2:
   links:
       - pxc1:Dock1
   ports:
-      - "3306"
-      - "4567"
-      - "4568"
+      - "11000:3306"
+      - "11001:4567"
+      - "11002:4568"
 pxc3:
   build: .
   hostname: Dock3
@@ -24,6 +24,6 @@ pxc3:
       - pxc1:Dock1
       - pxc2:Dock2
   ports:
-      - "3306"
-      - "4567"
-      - "4568"
+      - "12000:3306"
+      - "12001:4567"
+      - "12002:4568"
