@@ -108,7 +108,7 @@ else
 fi 
 popd
 
-if git log --summary -1  | grep -q '/Dockerfile';then 
+if git log --summary -1 -p  | grep -q '/Dockerfile';then 
     skip=false
 fi
 
