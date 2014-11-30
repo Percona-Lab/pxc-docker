@@ -1,7 +1,7 @@
 FROM centos:centos7
 MAINTAINER Raghavendra Prabhu raghavendra.prabhu@percona.com
 RUN curl -s http://jenkins.percona.com/dev-repo/percona-dev.repo > /etc/yum.repos.d/percona-dev.repo
-RUN yum install -y  http://repo.percona.com/testing/centos/7/os/noarch/percona-testing-0.0-1.noarch.rpm
+RUN yum install -y http://www.percona.com/downloads/percona-release/redhat/0.1-3/percona-release-0.1-3.noarch.rpm
 RUN yum install -y which lsof libaio compat-readline5 socat percona-xtrabackup perl-DBD-MySQL perl-DBI rsync openssl098e eatmydata pv qpress gzip
 ADD Percona-XtraDB-Cluster /pxc
 RUN mkdir -p /pxc/datadir
