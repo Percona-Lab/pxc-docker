@@ -278,7 +278,7 @@ echo "Starting first node"
 
 declare -a segloss
 
-if [[ $RSEGMENT == 1 ]];then 
+if [[ $RSEGMENT == "1" ]];then 
     SEGMENT=$(( RANDOM % (NUMC/2) ))
     segloss[0]=$(( SEGMENT+1 ))
 else 
@@ -320,7 +320,7 @@ for rest in `seq 2 $NUMC`; do
     echo "$nexti Dock${rest}" >> $HOSTSF
     echo "$nexti Dock${rest}.ci.percona.com" >> $HOSTSF
     echo "$nexti meant for Dock${rest}"
-    if [[ $RSEGMENT == 1 ]];then 
+    if [[ $RSEGMENT == "1" ]];then 
         SEGMENT=$(( RANDOM % (NUMC/2) ))
         segloss[$(( rest-1 ))]=$(( SEGMENT+1 ))
     else 
@@ -407,7 +407,7 @@ for int in ${intf[@]};do
     dpid=$(docker inspect -f '{{.State.Pid}}' Dock${int})
 
     sudo nsenter  -t $dpid -n tc qdisc replace dev $linter root handle 1: prio
-    if [[ $RSEGMENT == 1 ]];then 
+    if [[ $RSEGMENT == "1" ]];then 
         DELAY="$(( FIRSTD*${segloss[$(( int-1 ))]} ))ms $RESTD"
     else 
         DELAY="${FIRSTD}ms $RESTD"
