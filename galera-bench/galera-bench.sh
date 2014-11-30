@@ -407,7 +407,11 @@ for int in ${intf[@]};do
     dpid=$(docker inspect -f '{{.State.Pid}}' Dock${int})
 
     sudo nsenter  -t $dpid -n tc qdisc replace dev $linter root handle 1: prio
-    DELAY="$(( FIRSTD*$segloss[(( int-1 ))] ))ms $RESTD"
+    if [[ $RSEGMENT == 1 ]];then 
+        DELAY="$(( FIRSTD*${segloss[$(( int-1 ))]} ))ms $RESTD"
+    else 
+        DELAY="${FIRSTD}ms $RESTD"
+    fi
     echo "Setting delay as $DELAY for Dock${int}"
     sudo nsenter  -t $dpid -n tc qdisc add dev $linter parent 1:2 handle 30: netem delay $DELAY
 done
