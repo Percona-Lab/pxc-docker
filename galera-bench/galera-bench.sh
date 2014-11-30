@@ -50,8 +50,8 @@ if [[ $NUMC -lt 3 ]];then
 fi
 
 # Hack for jenkins only. uh.. 
-if [[ -n ${BUILD_NUMBER:-} && $(groups) != *docker* ]]; then
-    exec sg docker "$0 $*"
+if [[ -n ${BUILD_NUMBER:-} && $(groups) != *wheel* ]]; then
+    exec sg wheel "$0 $*"
 fi
 
 if [[ $PROVIDER == '1' ]];then 
@@ -406,14 +406,14 @@ for int in ${intf[@]};do
 
     dpid=$(docker inspect -f '{{.State.Pid}}' Dock${int})
 
-    nsenter  -t $dpid -n tc qdisc replace dev $linter root handle 1: prio
+    sudo nsenter  -t $dpid -n tc qdisc replace dev $linter root handle 1: prio
     if [[ $RSEGMENT == "1" ]];then 
         DELAY="$(( FIRSTD*${segloss[$(( int-1 ))]} ))ms $RESTD"
     else 
         DELAY="${FIRSTD}ms $RESTD"
     fi
     echo "Setting delay as $DELAY for Dock${int}"
-    nsenter  -t $dpid -n tc qdisc add dev $linter parent 1:2 handle 30: netem delay $DELAY
+    sudo nsenter  -t $dpid -n tc qdisc add dev $linter parent 1:2 handle 30: netem delay $DELAY
 done
 
 
@@ -422,7 +422,7 @@ echo "Rules in place"
 
 for s in `seq 1 $NUMC`;do 
     dpid=$(docker inspect -f '{{.State.Pid}}' Dock${s})
-    nsenter -t $dpid -n tc qdisc show
+    sudo nsenter -t $dpid -n tc qdisc show
 done
 if [[ ! -e $SDIR/${STEST}.lua ]];then 
     pushd /tmp
