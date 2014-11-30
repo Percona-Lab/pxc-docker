@@ -50,8 +50,8 @@ if [[ $NUMC -lt 3 ]];then
 fi
 
 # Hack for jenkins only. uh.. 
-if [[ -n ${BUILD_NUMBER:-} && $(groups) != *wheel* ]]; then
-    exec sg wheel "$0 $*"
+if [[ -n ${BUILD_NUMBER:-} && $(groups) != *docker* ]]; then
+    exec sg docker "$0 $*"
 fi
 
 if [[ $PROVIDER == '1' ]];then 
@@ -175,7 +175,7 @@ cleanup(){
         echo "Core files found"
         for cor in $COREDIR/*.core;do 
             cnt=$(cut -d. -f1 <<< $cor)
-            sudo gdb $NBASE/bin/mysqld --quiet --batch --core=$cor -ex "set logging file $LOGDIR/$cnt.trace" --command=backtrace.gdb
+            gdb $NBASE/bin/mysqld --quiet --batch --core=$cor -ex "set logging file $LOGDIR/$cnt.trace" --command=backtrace.gdb
         done 
     fi
 
@@ -270,7 +270,7 @@ rm -f $HOSTSF && touch $HOSTSF
 chcon  -Rt svirt_sandbox_file_t  $HOSTSF &>/dev/null  || true
 chcon  -Rt svirt_sandbox_file_t  $COREDIR &>/dev/null  || true
 
-docker run  -d  -t -i -v $HOSTSF:/dnsmasq.hosts --name dnscluster ronin/dnsmasq &>$LOGDIR/dnscluster-run.log
+docker run  -d -u=$(id -u $(whoami)):$(id -g $(whoami))  -t -i -v $HOSTSF:/dnsmasq.hosts --name dnscluster ronin/dnsmasq &>$LOGDIR/dnscluster-run.log
 
 dnsi=$(docker inspect  dnscluster | grep IPAddress | grep -oE '[0-9\.]+')
 
@@ -291,7 +291,7 @@ else
     PRELOAD=""
 fi
 
-docker run -P -e LD_PRELOAD=$PRELOAD  -d -t -i -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>$LOGDIR/run-Dock1.log
+docker run -P -e LD_PRELOAD=$PRELOAD  -d  -u=$(id -u $(whoami)):$(id -g $(whoami)) -t -i -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>$LOGDIR/run-Dock1.log
 
 wait_for_up Dock1
 spawn_sock Dock1
@@ -406,14 +406,14 @@ for int in ${intf[@]};do
 
     dpid=$(docker inspect -f '{{.State.Pid}}' Dock${int})
 
-    sudo nsenter  -t $dpid -n tc qdisc replace dev $linter root handle 1: prio
+    nsenter  -t $dpid -n tc qdisc replace dev $linter root handle 1: prio
     if [[ $RSEGMENT == "1" ]];then 
         DELAY="$(( FIRSTD*${segloss[$(( int-1 ))]} ))ms $RESTD"
     else 
         DELAY="${FIRSTD}ms $RESTD"
     fi
     echo "Setting delay as $DELAY for Dock${int}"
-    sudo nsenter  -t $dpid -n tc qdisc add dev $linter parent 1:2 handle 30: netem delay $DELAY
+    nsenter  -t $dpid -n tc qdisc add dev $linter parent 1:2 handle 30: netem delay $DELAY
 done
 
 
@@ -422,7 +422,7 @@ echo "Rules in place"
 
 for s in `seq 1 $NUMC`;do 
     dpid=$(docker inspect -f '{{.State.Pid}}' Dock${s})
-    sudo nsenter -t $dpid -n tc qdisc show
+    nsenter -t $dpid -n tc qdisc show
 done
 if [[ ! -e $SDIR/${STEST}.lua ]];then 
     pushd /tmp
