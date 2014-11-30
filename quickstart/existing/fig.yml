@@ -1,0 +1,30 @@
+pxc1:
+  image: new_pxc1
+  hostname: Dock1
+  command: sh -c "/usr/sbin/mysqld --basedir=/usr --user=mysql --wsrep-new-cluster --skip-grant-tables"
+  ports:
+      - "10000:3306"
+      - "10001:4567"
+      - "10002:4568"
+pxc2:
+  image: new_pxc2
+  hostname: Dock2
+  command: sh -c "/bin/sleep 4 && /usr/sbin/mysqld --basedir=/usr --user=mysql --wsrep-node-name=Dock2 --wsrep_cluster_address=gcomm://Dock1 --skip-grant-tables"
+  links:
+      - pxc1:Dock1
+  ports:
+      - "11000:3306"
+      - "11001:4567"
+      - "11002:4568"
+
+pxc3:
+  image: new_pxc3
+  hostname: Dock3
+  command: sh -c "/bin/sleep 40 && /usr/sbin/mysqld --basedir=/usr --user=mysql --wsrep-node-name=Dock3 --wsrep_cluster_address=gcomm://Dock1,Dock2 --skip-grant-tables"
+  links:
+      - pxc1:Dock1
+      - pxc2:Dock2
+  ports:
+      - "12000:3306"
+      - "12001:4567"
+      - "12002:4568"
