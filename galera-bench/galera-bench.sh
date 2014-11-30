@@ -469,10 +469,6 @@ echo "Sanity queries"
 
 for s in `seq 1 $NUMC`;do 
 
-    if [[ $RMOVE == '0' ]] && belongs $s ${intf[@]};then 
-        echo "Skipping Dock${s} from SOCKS"
-        continue
-    fi 
     for x in `seq 1 $TCOUNT`;do
         mysql -S $SOCKPATH/Dock${s}.sock -u root -e "select count(*) from test.sbtest$x" &>>$LOGDIR/sanity.log || exitfatal=1
     done 
