@@ -36,6 +36,9 @@ export PATH="/usr/sbin:$PATH"
 
 linter="eth0"
 
+FIRSTD=$(cut -d" " -f1 <<< $DELAY | tr -d 'ms')
+RESTD=$(cut -d" " -f2- <<< $DELAY)
+
 echo "
 [sst]
 sst-initial-timeout=$(( 50*NUMC ))
@@ -273,8 +276,11 @@ dnsi=$(docker inspect  dnscluster | grep IPAddress | grep -oE '[0-9\.]+')
 
 echo "Starting first node"
 
+declare -a segloss
+
 if [[ $RSEGMENT == 1 ]];then 
     SEGMENT=$(( RANDOM % (NUMC/2) ))
+    segloss[0]=$(( SEGMENT+1 ))
 else 
     SEGMENT=0
 fi
@@ -316,6 +322,7 @@ for rest in `seq 2 $NUMC`; do
     echo "$nexti meant for Dock${rest}"
     if [[ $RSEGMENT == 1 ]];then 
         SEGMENT=$(( RANDOM % (NUMC/2) ))
+        segloss[$(( rest-1 ))]=$(( SEGMENT+1 ))
     else 
         SEGMENT=0
     fi
@@ -389,10 +396,30 @@ done
 
 
 
+declare -a ints
+declare -a intf
+
+intf=(`seq 1 $NUMC`)
+
+for int in ${intf[@]};do 
+    echo "Adding delay to Dock${int} out of ${intf[@]}"
+
+    dpid=$(docker inspect -f '{{.State.Pid}}' Dock${int})
+
+    sudo nsenter  -t $dpid -n tc qdisc replace dev $linter root handle 1: prio
+    DELAY="$(( FIRSTD*$segloss[(( int-1 ))] ))ms $RESTD"
+    echo "Setting delay as $DELAY for Dock${int}"
+    sudo nsenter  -t $dpid -n tc qdisc add dev $linter parent 1:2 handle 30: netem delay $DELAY
+done
 
 
 
+echo "Rules in place"
 
+for s in `seq 1 $NUMC`;do 
+    dpid=$(docker inspect -f '{{.State.Pid}}' Dock${s})
+    sudo nsenter -t $dpid -n tc qdisc show
+done
 if [[ ! -e $SDIR/${STEST}.lua ]];then 
     pushd /tmp
 
@@ -401,6 +428,8 @@ if [[ ! -e $SDIR/${STEST}.lua ]];then
     SDIR=/tmp/
     popd
 fi
+
+
 
 set -x
     timeout -k9 $(( SDURATION+200 )) sysbench --test=$SDIR/$STEST.lua --db-driver=mysql --mysql-db=test --mysql-engine-trx=yes --mysql-table-engine=innodb --mysql-socket=$SOCKS --mysql-user=root  --num-threads=$TCOUNT --init-rng=on --max-requests=1870000000    --max-time=$SDURATION  --oltp_index_updates=20 --oltp_non_index_updates=20 --oltp-auto-inc=$AUTOINC --oltp_distinct_ranges=15 --report-interval=10  --oltp_tables_count=$TCOUNT run 2>&1 | tee $LOGDIR/sysbench_rw_run.txt
