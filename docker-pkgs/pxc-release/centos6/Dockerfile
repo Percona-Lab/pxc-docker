@@ -6,5 +6,6 @@ ADD node.cnf /etc/my.cnf
 RUN yum install -y which
 RUN yum install -y Percona-XtraDB-Cluster-56
 EXPOSE 3306 4567 4568
+ONBUILD RUN yum update
 CMD /sbin/service mysql bootstrap-pxc && tailf /dev/null
 
