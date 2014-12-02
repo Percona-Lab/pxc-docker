@@ -14,7 +14,7 @@ RSLEEP=${RSLEEP:-10}
 RMOVE=${RMOVE:-1}
 LOSS="${LOSS:-1%}"
 DELAY="${DELAY:-3ms}"
-CMD=${CMD:-"/pxc/bin/mysqld --defaults-extra-file=/pxc/my.cnf --basedir=/pxc --user=mysql --skip-grant-tables --query_cache_type=0  --wsrep_slave_threads=16 --innodb_autoinc_lock_mode=2  --query_cache_size=0 --innodb_flush_log_at_trx_commit=0 --innodb_file_per_table "}
+CMD=${CMD:-"/pxc/bin/mysqld --defaults-extra-file=/pxc/my.cnf --basedir=/pxc --user=mysql --skip-grant-tables --innodb-buffer-pool-size=500M --query_cache_type=0  --wsrep_slave_threads=16 --innodb_autoinc_lock_mode=2  --query_cache_size=0 --innodb_flush_log_at_trx_commit=0 --innodb_file_per_table "}
 LPATH=${SPATH:-/usr/share/doc/sysbench/tests/db}
 thres=1 
 RANDOM=$$
