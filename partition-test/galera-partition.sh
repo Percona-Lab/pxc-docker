@@ -43,6 +43,9 @@ export PATH="/usr/sbin:$PATH"
 
 linter="eth0"
 
+FIRSTD=$(cut -d" " -f1 <<< $DELAY | tr -d 'ms')
+RESTD=$(cut -d" " -f2- <<< $DELAY)
+
 echo "
 [sst]
 sst-initial-timeout=$(( 50*NUMC ))
@@ -112,7 +115,7 @@ else
 fi 
 popd
 
-if git log --summary -1  | grep -q '/Dockerfile';then 
+if git log --summary -1 -p  | grep -q '/Dockerfile';then 
     skip=false
 fi
 
@@ -280,8 +283,10 @@ dnsi=$(docker inspect  dnscluster | grep IPAddress | grep -oE '[0-9\.]+')
 
 echo "Starting first node"
 
+declare -a segloss
 if [[ $RSEGMENT == 1 ]];then 
     SEGMENT=$(( RANDOM % (NUMC/2) ))
+    segloss[0]=$(( SEGMENT+1 ))
 else 
     SEGMENT=0
 fi
@@ -321,8 +326,9 @@ for rest in `seq 2 $NUMC`; do
     echo "$nexti Dock${rest}" >> $HOSTSF
     echo "$nexti Dock${rest}.ci.percona.com" >> $HOSTSF
     echo "$nexti meant for Dock${rest}"
-    if [[ $RSEGMENT == 1 ]];then 
+    if [[ $RSEGMENT == "1" ]];then 
         SEGMENT=$(( RANDOM % (NUMC/2) ))
+        segloss[$(( rest-1 ))]=$(( SEGMENT+1 ))
     else 
         SEGMENT=0
     fi
@@ -421,6 +427,14 @@ if [[ $ALLINT == 1 ]];then
         dpid=$(docker inspect -f '{{.State.Pid}}' Dock${int})
 
         sudo nsenter  -t $dpid -n tc qdisc replace dev $linter root handle 1: prio
+
+
+        if [[ $RSEGMENT == "1" ]];then 
+            DELAY="$(( FIRSTD*${segloss[$(( int-1 ))]} ))ms $RESTD"
+        else 
+            DELAY="${FIRSTD}ms $RESTD"
+        fi
+
         sudo nsenter  -t $dpid -n tc qdisc add dev $linter parent 1:2 handle 30: netem delay $DELAY loss $LOSS
     done
 else 
@@ -430,6 +444,14 @@ else
     dpid=$(docker inspect -f '{{.State.Pid}}' Dock1)
 
     sudo nsenter  -t $dpid -n tc qdisc replace dev $linter root handle 1: prio
+
+
+    if [[ $RSEGMENT == "1" ]];then 
+        DELAY="$(( FIRSTD*${segloss[0]} ))ms $RESTD"
+    else 
+        DELAY="${FIRSTD}ms $RESTD"
+    fi
+
     sudo nsenter  -t $dpid -n tc qdisc add dev $linter parent 1:2 handle 30: netem delay $DELAY loss $LOSS
 
 fi
