@@ -303,7 +303,7 @@ echo "Starting first node"
 declare -a segloss
 if [[ $RSEGMENT == 1 ]];then 
     SEGMENT=$(( RANDOM % (NUMC/2) ))
-    segloss[0]=$(( SEGMENT+1 ))
+    segloss[0]=$(( SEGMENT/2+1 ))
 else 
     SEGMENT=0
 fi
@@ -336,6 +336,7 @@ nexti=$firsti
 sleep 5
 
 
+RANDOM=$(date +%s)
 for rest in `seq 2 $NUMC`; do
     echo "Starting node#$rest"
     lasto=$(cut -d. -f4 <<< $nexti)
@@ -345,7 +346,7 @@ for rest in `seq 2 $NUMC`; do
     echo "$nexti meant for Dock${rest}"
     if [[ $RSEGMENT == "1" ]];then 
         SEGMENT=$(( RANDOM % (NUMC/2) ))
-        segloss[$(( rest-1 ))]=$(( SEGMENT+1 ))
+        segloss[$(( rest-1 ))]=$(( SEGMENT/2+1 ))
     else 
         SEGMENT=0
     fi
