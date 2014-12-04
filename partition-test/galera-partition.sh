@@ -115,9 +115,9 @@ else
 fi 
 popd
 
-if git log --summary -1 -p  | grep -q '/Dockerfile';then 
-    skip=false
-fi
+#if git log --summary -1 -p  | grep -q '/Dockerfile';then 
+    #skip=false
+#fi
 
 if [[ $FORCEBLD == 1 ]];then 
     skip=false
@@ -184,6 +184,23 @@ cleanup(){
             cnt=$(cut -d. -f1 <<< $cor)
             sudo gdb $NBASE/bin/mysqld --quiet --batch --core=$cor -ex "set logging file $LOGDIR/$cnt.trace" --command=backtrace.gdb
         done 
+    fi
+
+}
+
+mshutdown(){ 
+
+    faildown=""
+
+    echo "Shutting down servers"
+    for s in `seq 1 $NUMC`;do 
+        echo "Shutting down container Dock${s}"
+        runc Dock$s  mysqladmin shutdown || failed+=" Dock${s}"
+    done
+
+    if [[ -n $faildown ]];then
+        echo "Failed in shutdown: $failed"
+        SHUTDN='no'
     fi
 
 }
@@ -632,16 +649,4 @@ if [[ $SHUTDN == 'no' ]];then
     exit
 fi
 
-faildown=""
-
-echo "Shutting down servers"
-for s in `seq 1 $NUMC`;do 
-    echo "Shutting down container Dock${s}"
-    runc Dock$s  mysqladmin shutdown || failed+=" Dock${s}"
-done
-
-if [[ -n $faildown ]];then
-    echo "Failed in shutdown: $failed"
-    SHUTDN='no'
-fi
-
+mshutdown

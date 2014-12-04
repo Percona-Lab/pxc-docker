@@ -108,9 +108,9 @@ else
 fi 
 popd
 
-if git log --summary -1 -p  | grep -q '/Dockerfile';then 
-    skip=false
-fi
+#if git log --summary -1 -p  | grep -q '/Dockerfile';then 
+    #skip=false
+#fi
 
 if [[ $FORCEBLD == 1 ]];then 
     skip=false
