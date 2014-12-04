@@ -23,7 +23,7 @@ SLEEPCNT=${SLEEPCNT:-10}
 FSYNC=${FSYNC:-0}
 
 TMPD=${TMPDIR:-/tmp}
-ALLINT=${ALLINT:-0}
+ALLINT=${ALLINT:-1}
 COREDIR=${COREDIR:-/var/crash}
 ECMD=${EXTRA_CMD:-" --wsrep-sst-method=rsync --core-file "}
 RSEGMENT=${RSEGMENT:-1}
@@ -411,18 +411,20 @@ done
 
 declare -a ints
 declare -a intf
+declare -a intall 
 
 if [[ $ALLINT == 1 ]];then 
     echo "Adding loss to $LOSSNO nodes out of $NUMC"
     intf=(`shuf -i 1-$NUMC -n $LOSSNO`)
 fi
 
+intall=(`seq 1 $NUMC`)
 
 
 
 if [[ $ALLINT == 1 ]];then 
-    for int in ${intf[@]};do 
-        echo "Adding delay to Dock${int} out of ${intf[@]}"
+    for int in ${intall[@]};do 
+        echo "Adding delay to Dock${int} out of ${intall[@]}"
 
         dpid=$(docker inspect -f '{{.State.Pid}}' Dock${int})
 
@@ -435,7 +437,11 @@ if [[ $ALLINT == 1 ]];then
             DELAY="${FIRSTD}ms $RESTD"
         fi
 
-        sudo nsenter  -t $dpid -n tc qdisc add dev $linter parent 1:2 handle 30: netem delay $DELAY loss $LOSS
+        if belongs $int ${intf[@]};then 
+            sudo nsenter  -t $dpid -n tc qdisc add dev $linter parent 1:2 handle 30: netem delay $DELAY loss $LOSS
+        else 
+            sudo nsenter  -t $dpid -n tc qdisc add dev $linter parent 1:2 handle 30: netem delay $DELAY 
+        fi
     done
 else 
     echo "Adding delay $DELAY  and loss $LOSS"
@@ -501,16 +507,18 @@ set +x
 
 if [[ $RMOVE == '1' ]];then 
     if [[ $ALLINT == 1 ]];then 
-        for int in ${intf[@]};do 
+        for int in ${intall[@]};do 
 
             echo "Removing delay $DELAY  and loss $LOSS for container Dock${int}"
             dpid=$(docker inspect -f '{{.State.Pid}}' Dock${int})
-            sudo nsenter -t $dpid -n tc qdisc del dev $linter root netem || true
+            #sudo nsenter -t $dpid -n tc qdisc del dev $linter root netem || true
+            sudo nsenter  -t $dpid -n tc qdisc change dev $linter parent 1:2 handle 30: netem delay $DELAY || true
         done
     else 
         echo "Removing delay $DELAY  and loss $LOSS for Dock1"
         dpid=$(docker inspect -f '{{.State.Pid}}' Dock1)
-        sudo nsenter -t $dpid -n tc qdisc del dev $linter root netem || true
+        #sudo nsenter -t $dpid -n tc qdisc del dev $linter root netem || true
+        sudo nsenter  -t $dpid -n tc qdisc change dev $linter parent 1:2 handle 30: netem delay $DELAY || true
     fi
 fi
 
