@@ -128,7 +128,7 @@ mkdir -p $LOGDIR
 
 runum(){
     local cmd="$1"
-    for x in `seq 1 $NUMC`; do 
+    for x in `seq 1 50`; do 
         eval $cmd Dock$x
     done 
 }
@@ -621,7 +621,9 @@ set -x
  timeout -k9 $(( SDURATION+200 )) sysbench --test=$LPATH/parallel_prepare.lua ---report-interval=10  --oltp-auto-inc=$AUTOINC --mysql-db=test  --db-driver=mysql --num-threads=$NUMT --mysql-engine-trx=yes --mysql-table-engine=innodb --mysql-socket=$SOCKS --mysql-user=root  --oltp-table-size=$TSIZE --oltp_tables_count=$TCOUNT    cleanup 2>&1 | tee $LOGDIR/sysbench_cleanup.txt 
 set +x
 
-mysql -S $FIRSTSOCK  -u root -e "drop database testdb;" || true
+sleep 20
+
+mysql -S $FIRSTSOCK  -u root -e "drop database testdb;" || SHUTDN='no'
 
 sleep 10 
 
@@ -630,9 +632,16 @@ if [[ $SHUTDN == 'no' ]];then
     exit
 fi
 
+faildown=""
+
 echo "Shutting down servers"
 for s in `seq 1 $NUMC`;do 
-    runc Dock$s  mysqladmin shutdown
+    echo "Shutting down container Dock${s}"
+    runc Dock$s  mysqladmin shutdown || failed+=" Dock${s}"
 done
 
+if [[ -n $faildown ]];then
+    echo "Failed in shutdown: $failed"
+    SHUTDN='no'
+fi
 
