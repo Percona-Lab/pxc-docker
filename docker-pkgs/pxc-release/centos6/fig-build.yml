@@ -1,5 +1,5 @@
 bootstrap:
-  image: ronin/pxc:centos6
+  build: .
   hostname: Dock1
   command: sh -c "/sbin/service mysql bootstrap-pxc --wsrep-node-name=Dock1 --skip-grant-tables  && tailf /dev/null"
   ports:
@@ -7,7 +7,7 @@ bootstrap:
       - "4567"
       - "4568"
 members:
-  image: ronin/pxc:centos6
+  build: .
   command: sh -c "/sbin/service mysql start --wsrep-node-name=Dock${RANDOM} --wsrep_cluster_address=gcomm://Dock1 --skip-grant-tables --wsrep-sst-method=rsync && tailf /dev/null"
   links:
       - bootstrap:Dock1
