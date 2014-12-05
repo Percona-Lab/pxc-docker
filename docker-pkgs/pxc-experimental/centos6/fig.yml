@@ -1,29 +1,17 @@
-pxc1:
+bootstrap:
   build: .
   hostname: Dock1
   command: sh -c "/sbin/service mysql bootstrap-pxc --wsrep-node-name=Dock1 --skip-grant-tables  && tailf /dev/null"
   ports:
-      - "10000:3306"
-      - "10001:4567"
-      - "10002:4568"
-pxc2:
+      - "3306"
+      - "4567"
+      - "4568"
+members:
   build: .
-  hostname: Dock2
-  command: sh -c "/bin/sleep 60 && /sbin/service mysql start --wsrep-node-name=Dock2 --wsrep_cluster_address=gcomm://Dock1 --skip-grant-tables && tailf /dev/null"
+  command: sh -c "/sbin/service mysql start --wsrep-node-name=Dock${RANDOM} --wsrep_cluster_address=gcomm://Dock1 --skip-grant-tables --wsrep-sst-method=rsync && tailf /dev/null"
   links:
-      - pxc1:Dock1
+      - bootstrap:Dock1
   ports:
-      - "11000:3306"
-      - "11001:4567"
-      - "11002:4568"
-pxc3:
-  build: .
-  hostname: Dock3
-  command: sh -c "/bin/sleep 120 && /sbin/service mysql start --wsrep-node-name=Dock3 --wsrep_cluster_address=gcomm://Dock1,Dock2 --skip-grant-tables && tailf /dev/null"
-  links:
-      - pxc1:Dock1
-      - pxc2:Dock2
-  ports:
-      - "12000:3306"
-      - "12001:4567"
-      - "12002:4568"
+      - "3306"
+      - "4567"
+      - "4568"
