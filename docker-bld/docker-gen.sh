@@ -26,11 +26,13 @@ MAINTAINER Raghavendra Prabhu raghavendra.prabhu@percona.com
 RUN curl -s http://jenkins.percona.com/dev-repo/percona-dev.repo > /etc/yum.repos.d/percona-dev.repo
 RUN yum install -y http://www.percona.com/downloads/percona-release/redhat/0.1-3/percona-release-0.1-3.noarch.rpm
 RUN yum install -y which lsof libaio compat-readline5 socat percona-xtrabackup perl-DBD-MySQL perl-DBI rsync openssl098e eatmydata pv qpress gzip openssl
-RUN yum install -y bzr automake gcc  make g++ libtool autoconf pkgconfig gettext git scons    boost_req boost-devel cmake
+RUN yum install -y bzr automake gcc  make  libtool autoconf pkgconfig gettext git scons    boost_req boost-devel libaio openssl-devel 
+RUN yum install -y gcc-c++ gperf ncurses-devel perl readline-devel time zlib-devel libaio-devel bison cmake 
+RUN yum install -y coreutils grep procps 
 RUN bzr checkout --lightweight $branch
 WORKDIR /percona-xtradb-cluster 
 RUN cmake -DBUILD_CONFIG=mysql_release -DDEBUG_EXTNAME=OFF -DWITH_ZLIB=system  -DWITH_SSL=system .
-RUN make
+RUN make -j
 RUN make install
 WORKDIR /
 RUN git clone --depth=1 git@github.com:percona/galera.git
