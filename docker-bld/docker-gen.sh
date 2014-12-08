@@ -31,7 +31,7 @@ ADD node.cnf /etc/my.cnf
 RUN groupadd -r mysql
 RUN useradd -M -r -d /pxc/datadir -s /bin/bash -c \"MySQL server\" -g mysql mysql
 EXPOSE 3306 4567 4568
-RUN /pxc/scripts/mysql_install_db --basedir=/pxc --user=mysql
+RUN /pxc/bin/mysql_install_db --basedir=/pxc --user=mysql
 CMD  /pxc/bin/mysqld --basedir=/pxc --wsrep-new-cluster --user=mysql --core-file --skip-grant-tables --wsrep-sst-method=rsync
 
 " > $tmpdir/Dockerfile 
