@@ -1,22 +1,20 @@
 #!/bin/bash
 
-# Root is where you installed PXC with make install in source tree. Make sure to provide full path
 
-root=$1
-if [[ -z $root ]];then 
-    echo "Please provide tree where PXC is installed"
-    exit 1
-fi
 
 # Not using mktemp -d here since fig doesn't work with capital letter basenames.
-tmpdir="/tmp/docker-$RANDOM"
+branch="$1"
 
-if [[ -d $tmpdir ]];then 
-    echo "$tmpdir already exists"
-    exit 1
+if [[ -z $branch ]];then 
+    echo "Please provide branch as first argument"
+    echo "Using lp:percona-xtradb-cluster  as default"
 fi
 
-mkdir -p $tmpdir 
+
+
+
+
+
 
 
 echo "
@@ -25,23 +23,27 @@ MAINTAINER Raghavendra Prabhu raghavendra.prabhu@percona.com
 RUN curl -s http://jenkins.percona.com/dev-repo/percona-dev.repo > /etc/yum.repos.d/percona-dev.repo
 RUN yum install -y http://www.percona.com/downloads/percona-release/redhat/0.1-3/percona-release-0.1-3.noarch.rpm
 RUN yum install -y which lsof libaio compat-readline5 socat percona-xtrabackup perl-DBD-MySQL perl-DBI rsync openssl098e eatmydata pv qpress gzip openssl
-ADD $(basename $root) /pxc
-RUN mkdir -p /pxc/datadir
+RUN yum install -y bzr automake gcc  make g++ libtool autoconf pkgconfig gettext git scons    boost_req boost-devel
+RUN bzr checkout --lightweight $branch
+WORKDIR /percona-xtradb-cluster 
+RUN cmake -DBUILD_CONFIG=mysql_release -DDEBUG_EXTNAME=OFF -DWITH_ZLIB=system  -DWITH_SSL=system .
+RUN make
+RUN make install
+WORKDIR /
+RUN git clone --depth=1 git@github.com:percona/galera.git
+WORKDIR /galera
+RUN scons -j4 --config=force  libgalera_smm.so
+RUN install libgalera_smm.so /usr/lib64/
+WORKDIR /
 ADD node.cnf /etc/my.cnf
 RUN groupadd -r mysql
-RUN useradd -M -r -d /pxc/datadir -s /bin/bash -c \"MySQL server\" -g mysql mysql
+RUN useradd -M -r -d /var/lib/mysql -s /bin/bash -c \"MySQL server\" -g mysql mysql
 EXPOSE 3306 4567 4568
-RUN /pxc/bin/mysql_install_db --basedir=/pxc --user=mysql
-CMD  /pxc/bin/mysqld --basedir=/pxc --wsrep-new-cluster --user=mysql --core-file --skip-grant-tables --wsrep-sst-method=rsync
+RUN /usr/bin/mysql_install_db --basedir=/usr --user=mysql
+CMD  /usr/bin/mysqld --basedir=/usr --wsrep-new-cluster --user=mysql --core-file --skip-grant-tables --wsrep-sst-method=rsync
 
-" > $tmpdir/Dockerfile 
+" > Dockerfile 
 
-echo "Copying $root and other files to $tmpdir"
-
-cp -a  $root node.cnf fig.yml  $tmpdir/
-
-
-echo "Environment prepared for fig in $tmpdir!"
 echo "fig scale bootstrap=1 members=2 for a 3 node cluster"
 
 
