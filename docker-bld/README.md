@@ -15,3 +15,25 @@ http://www.fig.sh/install.html
 Docker install:
 https://docs.docker.com/installation/
 
+
+Tips
+=========
+To make it a bit faster, do
+
+Replace:
+
+%%%%%%%%%%%%%%
+members:
+  build: .
+%%%%%%%%%%%%%
+
+with
+
+%%%%%%%%%%%%%
+members:
+  image: dockertest_bootstrap
+%%%%%%%%%%%%%
+
+where dockertest is given as follows:
+
+FIG_PROJECT_NAME=dockertest fig scale bootstrap=1 members=2
