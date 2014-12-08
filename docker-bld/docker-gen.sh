@@ -24,9 +24,10 @@ echo "
 FROM centos:centos7
 MAINTAINER Raghavendra Prabhu raghavendra.prabhu@percona.com
 RUN curl -s http://jenkins.percona.com/dev-repo/percona-dev.repo > /etc/yum.repos.d/percona-dev.repo
+RUN yum install http://epel.check-update.co.uk/7/x86_64/e/epel-release-7-2.noarch.rpm
 RUN yum install -y http://www.percona.com/downloads/percona-release/redhat/0.1-3/percona-release-0.1-3.noarch.rpm
 RUN yum install -y which lsof libaio compat-readline5 socat percona-xtrabackup perl-DBD-MySQL perl-DBI rsync openssl098e eatmydata pv qpress gzip openssl
-RUN yum install -y bzr automake gcc  make  libtool autoconf pkgconfig gettext git scons    boost_req boost-devel libaio openssl-devel 
+RUN yum install -y bzr automake gcc  make  libtool autoconf pkgconfig gettext git scons    boost_req boost-devel libaio openssl-devel  check-devel
 RUN yum install -y gcc-c++ gperf ncurses-devel perl readline-devel time zlib-devel libaio-devel bison cmake 
 RUN yum install -y coreutils grep procps 
 RUN bzr checkout --lightweight $branch
@@ -35,7 +36,7 @@ RUN cmake -DBUILD_CONFIG=mysql_release -DDEBUG_EXTNAME=OFF -DWITH_ZLIB=system  -
 RUN make -j
 RUN make install
 WORKDIR /
-RUN git clone --depth=1 git@github.com:percona/galera.git
+RUN git clone --depth=1 https://github.com/percona/galera
 WORKDIR /galera
 RUN scons -j4 --config=force  libgalera_smm.so
 RUN install libgalera_smm.so /usr/lib64/
