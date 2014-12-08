@@ -8,6 +8,9 @@ branch="$1"
 if [[ -z $branch ]];then 
     echo "Please provide branch as first argument"
     echo "Using lp:percona-xtradb-cluster  as default"
+    branch="lp:percona-xtradb-cluster"
+    echo 
+    echo
 fi
 
 
@@ -44,6 +47,6 @@ CMD  /usr/bin/mysqld --basedir=/usr --wsrep-new-cluster --user=mysql --core-file
 
 " > Dockerfile 
 
-echo "fig scale bootstrap=1 members=2 for a 3 node cluster"
+echo "Use:> fig scale bootstrap=1 members=2 for a 3 node cluster!"
 
 
