@@ -25,7 +25,7 @@ MAINTAINER Raghavendra Prabhu raghavendra.prabhu@percona.com
 RUN curl -s http://jenkins.percona.com/dev-repo/percona-dev.repo > /etc/yum.repos.d/percona-dev.repo
 RUN yum install -y http://www.percona.com/downloads/percona-release/redhat/0.1-3/percona-release-0.1-3.noarch.rpm
 RUN yum install -y which lsof libaio compat-readline5 socat percona-xtrabackup perl-DBD-MySQL perl-DBI rsync openssl098e eatmydata pv qpress gzip openssl
-ADD $root /pxc
+ADD $(basename $root) /pxc
 RUN mkdir -p /pxc/datadir
 ADD node.cnf /etc/my.cnf
 RUN groupadd -r mysql
@@ -42,5 +42,6 @@ cp -a  $root node.cnf fig.yml  $tmpdir/
 
 
 echo "Environment prepared for fig in $tmpdir!"
+echo "fig scale bootstrap=1 members=2 for a 3 node cluster"
 
 
