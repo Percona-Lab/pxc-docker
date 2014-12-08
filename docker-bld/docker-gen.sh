@@ -45,7 +45,7 @@ ADD node.cnf /etc/my.cnf
 RUN groupadd -r mysql
 RUN useradd -M -r -d /var/lib/mysql -s /bin/bash -c \"MySQL server\" -g mysql mysql
 EXPOSE 3306 4567 4568
-RUN /usr/bin/mysql_install_db --basedir=/usr --user=mysql
+RUN /usr/scripts/mysql_install_db --basedir=/usr --user=mysql
 CMD  /usr/bin/mysqld --basedir=/usr --wsrep-new-cluster --user=mysql --core-file --skip-grant-tables --wsrep-sst-method=rsync
 
 " > Dockerfile 
