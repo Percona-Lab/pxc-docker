@@ -7,7 +7,7 @@ bootstrap:
       - "4567"
       - "4568"
 members:
-  build: .
+  image: dockerbld_bootstrap
   command: sh -c "/usr/sbin/mysqld --basedir=/usr --user=mysql --wsrep-node-name=Dock${RANDOM} --wsrep_cluster_address=gcomm://Dock1 --skip-grant-tables --wsrep-sst-method=rsync"
   links:
       - bootstrap:Dock1
