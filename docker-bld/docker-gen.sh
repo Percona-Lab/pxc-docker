@@ -36,8 +36,9 @@ CMD  /pxc/bin/mysqld --basedir=/pxc --wsrep-new-cluster --user=mysql --core-file
 
 " > $tmpdir/Dockerfile 
 
+echo "Copying $root and other files to $tmpdir"
 
-cp -a node.cnf fig.yml  $tmpdir/
+cp -a  $root node.cnf fig.yml  $tmpdir/
 
 
 echo "Environment prepared for fig in $tmpdir!"
