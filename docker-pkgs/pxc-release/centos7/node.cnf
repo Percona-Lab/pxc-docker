@@ -22,3 +22,6 @@ innodb_autoinc_lock_mode=2
 [client]
 user=root
 password=
+
+[sst]
+sst-initial-timeout=1800
