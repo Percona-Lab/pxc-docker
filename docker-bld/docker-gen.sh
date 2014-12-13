@@ -33,7 +33,7 @@ RUN yum install -y bzr automake gcc  make  libtool autoconf pkgconfig gettext gi
 RUN yum install -y gcc-c++ gperf ncurses-devel perl readline-devel time zlib-devel libaio-devel bison cmake 
 RUN yum install -y coreutils grep procps 
 RUN bzr checkout --lightweight $branch
-WORKDIR /percona-xtradb-cluster 
+WORKDIR /$(basename $branch)
 RUN cmake -DBUILD_CONFIG=mysql_release -DDEBUG_EXTNAME=OFF -DWITH_ZLIB=system  -DWITH_SSL=system -DCMAKE_INSTALL_PREFIX="/usr"   .
 RUN make -j$numcp
 RUN make install
