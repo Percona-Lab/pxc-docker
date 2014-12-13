@@ -11,7 +11,8 @@ if [[ -z tree ]];then
     exit 1
 fi
 
-
+numcp=$(grep -c processor /proc/cpuinfo)
+numcp=$(( numcp-1 ))
 
 
 
@@ -31,7 +32,7 @@ RUN yum install -y coreutils grep procps
 ADD $(basename $tree) /percona-xtradb-cluster
 WORKDIR /percona-xtradb-cluster 
 RUN cmake -DBUILD_CONFIG=mysql_release -DDEBUG_EXTNAME=OFF -DWITH_ZLIB=system  -DWITH_SSL=system -DCMAKE_INSTALL_PREFIX="/usr"   .
-RUN make -j
+RUN make -j4
 RUN make install
 WORKDIR /
 RUN git clone --depth=1 https://github.com/percona/galera

@@ -15,6 +15,8 @@ fi
 
 
 
+numcp=$(grep -c processor /proc/cpuinfo)
+numcp=$(( numcp-1 ))
 
 
 
@@ -33,12 +35,12 @@ RUN yum install -y coreutils grep procps
 RUN bzr checkout --lightweight $branch
 WORKDIR /percona-xtradb-cluster 
 RUN cmake -DBUILD_CONFIG=mysql_release -DDEBUG_EXTNAME=OFF -DWITH_ZLIB=system  -DWITH_SSL=system -DCMAKE_INSTALL_PREFIX="/usr"   .
-RUN make -j
+RUN make -j$numcp
 RUN make install
 WORKDIR /
 RUN git clone --depth=1 https://github.com/percona/galera
 WORKDIR /galera
-RUN scons -j4 --config=force  libgalera_smm.so
+RUN scons -j$numcp --config=force  libgalera_smm.so
 RUN install libgalera_smm.so /usr/lib64/
 WORKDIR /
 ADD node.cnf /etc/my.cnf
