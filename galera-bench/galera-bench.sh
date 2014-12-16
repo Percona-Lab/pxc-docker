@@ -316,6 +316,7 @@ sleep 5
 
 set -x
 sysbench --test=$SDIR/$STEST.lua --db-driver=mysql --mysql-db=test --mysql-engine-trx=yes --mysql-table-engine=innodb --mysql-socket=$FIRSTSOCK --mysql-user=root  --num-threads=$NUMT --init-rng=on --max-requests=1870000000    --max-time=$(( NUMC*10 ))  --oltp_index_updates=20 --oltp_non_index_updates=20 --oltp-auto-inc=$AUTOINC --oltp_distinct_ranges=15 --report-interval=1  --oltp_tables_count=$TCOUNT run &>$LOGDIR/sysbench-run-0.txt & 
+syspid=$!
 set +x
 
 for rest in `seq 2 $NUMC`; do
@@ -357,6 +358,7 @@ for s in `seq 2 $NUMC`;do
     spawn_sock Dock$s
 done
 
+wait $syspid 
 
 sleep 10
 
