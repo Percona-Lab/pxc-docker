@@ -314,6 +314,8 @@ mysql -S $FIRSTSOCK -u root -e "create database testdb;" || true
 nexti=$firsti
 sleep 5
 
+sysbench --test=$SDIR/$STEST.lua --db-driver=mysql --mysql-db=test --mysql-engine-trx=yes --mysql-table-engine=innodb --mysql-socket=$FIRSTSOCK --mysql-user=root  --num-threads=$NUMT --init-rng=on --max-requests=1870000000    --max-time=$(( NUMC*10 ))  --oltp_index_updates=20 --oltp_non_index_updates=20 --oltp-auto-inc=$AUTOINC --oltp_distinct_ranges=15 --report-interval=1  --oltp_tables_count=$TCOUNT run &>$LOGDIR/sysbench-run-0.txt & 
+
 
 for rest in `seq 2 $NUMC`; do
     echo "Starting node#$rest"
@@ -344,6 +346,7 @@ for rest in `seq 2 $NUMC`; do
         exit 1
     fi
     sleep $(( rest*2 ))
+
 done
 
 
@@ -435,6 +438,16 @@ if [[ ! -e $SDIR/${STEST}.lua ]];then
     popd
 fi
 
+
+mysql -S $FIRSTSOCK -u root -e "drop database testdb;" || true
+mysql -S $FIRSTSOCK -u root -e "drop database test;" || true
+mysql -S $FIRSTSOCK -u root -e "create database test;" || true
+mysql -S $FIRSTSOCK -u root -e "create database testdb;" || true
+
+echo "Preparing again!"
+set -x
+sysbench --test=$LPATH/parallel_prepare.lua ---report-interval=10  --oltp-auto-inc=$AUTOINC --mysql-db=test  --db-driver=mysql --num-threads=$NUMT --mysql-engine-trx=yes --mysql-table-engine=innodb --mysql-socket=$SOCKS --mysql-user=root  --oltp-table-size=$TSIZE --oltp_tables_count=$TCOUNT    prepare 2>&1 | tee $LOGDIR/sysbench_prepare-2.txt 
+set +x
 
 
 set -x
