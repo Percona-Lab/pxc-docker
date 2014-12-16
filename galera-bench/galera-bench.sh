@@ -151,7 +151,7 @@ cleanup(){
 
 
     for s in `seq 1 $NUMC`;do 
-        docker logs -t Dock$s > $LOGDIR/Dock$s.log
+        docker logs -t Dock$s &>$LOGDIR/Dock$s.log
     done
 
     docker logs -t dnscluster > $LOGDIR/dnscluster.log
