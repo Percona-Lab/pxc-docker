@@ -308,7 +308,7 @@ else
     PRELOAD=""
 fi
 
-docker run -P -e LD_PRELOAD=$PRELOAD -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>$LOGDIR/run-Dock1.log
+docker run -P -e LD_PRELOAD=$PRELOAD -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>/dev/null
 
 wait_for_up Dock1
 spawn_sock Dock1
@@ -354,7 +354,7 @@ for rest in `seq 2 $NUMC`; do
         PRELOAD=""
     fi
     set -x
-    docker run -P -e LD_PRELOAD=$PRELOAD -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock{rest} -h Dock$rest -v $COREDIR:/pxc/crash $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>$LOGDIR/run-Dock${rest}.log
+    docker run -P -e LD_PRELOAD=$PRELOAD -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock{rest} -h Dock$rest -v $COREDIR:/pxc/crash $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>/dev/null
     set +x
     #CSTR="${CSTR},Dock${rest}"
 
