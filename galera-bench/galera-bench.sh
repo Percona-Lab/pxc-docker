@@ -165,14 +165,15 @@ cleanup(){
         echo "Removing containers"
         runum "docker rm -f " &>/dev/null
     fi
-    tar cvzf $TMPD/results-${BUILD_NUMBER}.tar.gz $LOGDIR  
     pkill -9 -f socat
     rm -rf $SOCKPATH && mkdir -p $SOCKPATH
     #rm -rf $LOGDIR
 
     now=$(date +%s)
-    set -x
-    sudo journalctl --since=$(( then-now )) > $LOGDIR/journald.log
+    for s in `seq 1 $NUMC`;do 
+        sudo journalctl --since=$(( then-now )) | grep  "Dock${s}-" > $LOGDIR/journald-Dock${s}.log
+    done
+    tar cvzf $TMPD/results-${BUILD_NUMBER}.tar.gz $LOGDIR  
     set -e 
 
     echo "Checking for core files"
