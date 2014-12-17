@@ -199,6 +199,18 @@ wait_for_up(){
     local cnt=$1
     local count=0
     local hostt=$(docker port $cnt 3306)
+
+    if [[ $? -ne 0 ]];then 
+        sleep 5
+        hostt=$(docker port $cnt 3306)
+        if [[ $count -gt $SLEEPCNT ]];then 
+            echo "Failure"
+            exit 1
+        else 
+            count=$(( count+1 ))
+        fi
+    fi
+
     local hostr=$(cut -d: -f1 <<< $hostt)
     local portr=$(cut -d: -f2 <<< $hostt)
 
