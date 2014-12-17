@@ -171,7 +171,7 @@ cleanup(){
     #rm -rf $LOGDIR
 
     now=$(date +%s)
-    journalctl --since=$(( then-now )) > $LOGDIR/journald.log
+    sudo journalctl --since=$(( then-now )) > $LOGDIR/journald.log
     set -e 
 
     echo "Checking for core files"
