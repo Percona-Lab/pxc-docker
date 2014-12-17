@@ -180,7 +180,7 @@ cleanup(){
         echo "Core files found"
         for cor in $COREDIR/*.core;do 
             cnt=$(cut -d. -f1 <<< $cor)
-            gdb $NBASE/bin/mysqld --quiet --batch --core=$cor -ex "set logging file $LOGDIR/$cnt.trace" --command=backtrace.gdb
+            sudo gdb $NBASE/bin/mysqld --quiet --batch --core=$cor -ex "set logging file $LOGDIR/$cnt.trace" --command=backtrace.gdb
         done 
     fi
 
