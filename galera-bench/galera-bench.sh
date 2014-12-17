@@ -171,6 +171,7 @@ cleanup(){
     #rm -rf $LOGDIR
 
     now=$(date +%s)
+    set -x
     sudo journalctl --since=$(( then-now )) > $LOGDIR/journald.log
     set -e 
 
