@@ -28,3 +28,4 @@ password=
 
 [sst]
 sst-initial-timeout=1800
+sst-syslog=1

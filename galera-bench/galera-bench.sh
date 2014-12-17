@@ -1,5 +1,6 @@
 #!/bin/bash -u
 
+then=$(date +%s)
 skip=true
 NUMC=${NUMC:-3}
 SDURATION=${SDURATION:-300}
@@ -154,6 +155,7 @@ cleanup(){
         docker logs -t Dock$s &>$LOGDIR/Dock$s.log
     done
 
+
     docker logs -t dnscluster > $LOGDIR/dnscluster.log
     if [[ $SHUTDN == 'yes' ]];then 
         docker stop dnscluster  &>/dev/null
@@ -167,6 +169,9 @@ cleanup(){
     pkill -9 -f socat
     rm -rf $SOCKPATH && mkdir -p $SOCKPATH
     #rm -rf $LOGDIR
+
+    now=$(date +%s)
+    journalctl --since=$(( then-now )) > $LOGDIR/journald.log
     set -e 
 
     echo "Checking for core files"
@@ -282,8 +287,7 @@ rm -f $HOSTSF && touch $HOSTSF
 chcon  -Rt svirt_sandbox_file_t  $HOSTSF &>/dev/null  || true
 chcon  -Rt svirt_sandbox_file_t  $COREDIR &>/dev/null  || true
 
-#docker run  -d -u=$(id -u $(whoami)):$(id -g $(whoami))  -t -i -v $HOSTSF:/dnsmasq.hosts --name dnscluster ronin/dnsmasq &>$LOGDIR/dnscluster-run.log
-docker run  -d    -i -v $HOSTSF:/dnsmasq.hosts --name dnscluster ronin/dnsmasq &>$LOGDIR/dnscluster-run.log
+docker run  -d    -i -v /dev/log:/dev/log -e SST_SYSLOG_TAG=dnsmasq -v $HOSTSF:/dnsmasq.hosts --name dnscluster ronin/dnsmasq &>$LOGDIR/dnscluster-run.log
 
 dnsi=$(docker inspect  dnscluster | grep IPAddress | grep -oE '[0-9\.]+')
 
@@ -304,8 +308,7 @@ else
     PRELOAD=""
 fi
 
-#docker run -P -e LD_PRELOAD=$PRELOAD  -d  -u=$(id -u $(whoami)):$(id -g $(whoami)) -t -i -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>$LOGDIR/run-Dock1.log
-docker run -P -e LD_PRELOAD=$PRELOAD  -d  -i -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>$LOGDIR/run-Dock1.log
+docker run -P -e LD_PRELOAD=$PRELOAD -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>$LOGDIR/run-Dock1.log
 
 wait_for_up Dock1
 spawn_sock Dock1
@@ -351,7 +354,7 @@ for rest in `seq 2 $NUMC`; do
         PRELOAD=""
     fi
     set -x
-    docker run -P -e LD_PRELOAD=$PRELOAD -d  -i -h Dock$rest -v $COREDIR:/pxc/crash $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>$LOGDIR/run-Dock${rest}.log
+    docker run -P -e LD_PRELOAD=$PRELOAD -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock{rest} -h Dock$rest -v $COREDIR:/pxc/crash $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>$LOGDIR/run-Dock${rest}.log
     set +x
     #CSTR="${CSTR},Dock${rest}"
 
