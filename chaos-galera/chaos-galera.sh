@@ -483,6 +483,8 @@ while true;do
     for x in ${intf[@]};do 
         if [[ $x -ne 1 ]];then
             nd+=" Dock${x} "
+        else 
+            LOSSNO=$(( LOSSNO-1 ))
         fi
     done
     #echo "IP Addresses Before:"
