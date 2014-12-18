@@ -245,7 +245,10 @@ spawn_sock(){
     hostr=$(cut -d: -f1 <<< $hostt)
     portr=$(cut -d: -f2 <<< $hostt)
     local socket=$SOCKPATH/${cnt}.sock
-    [[ -f $socket ]] && rm -f $socket
+    [[ -f $socket ]] && {
+        pkill -9 -f $socket
+        rm -f $socket
+    }
     socat UNIX-LISTEN:${socket},fork,reuseaddr TCP:$hostr:$portr 2>>$LOGDIR/socat-${cnt}.log &
     echo "$cnt also listening on $socket for $hostr:$portr" 
     if [[ -z $SOCKS ]];then 
