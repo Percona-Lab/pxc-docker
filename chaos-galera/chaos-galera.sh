@@ -285,12 +285,13 @@ CSTR="gcomm://Dock1"
 #done 
 
 rm -f $HOSTSF && touch $HOSTSF
+rm -f $RESFILE && touch $RESFILE
 
 # Some Selinux foo
 chcon  -Rt svirt_sandbox_file_t  $HOSTSF &>/dev/null  || true
 chcon  -Rt svirt_sandbox_file_t  $COREDIR &>/dev/null  || true
 
-docker run  -d  -p 20000:53   -i -v /dev/log:/dev/log -e SST_SYSLOG_TAG=dnsmasq -v $HOSTSF:/dnsmasq.hosts --name dnscluster ronin/dnsmasq &>$LOGDIR/dnscluster-run.log
+docker run  -d  -p 20000:53   -i -v /dev/log:/dev/log -e SST_SYSLOG_TAG=dnsmasq -v $RESFILE:/dnsmasq.res -v $HOSTSF:/dnsmasq.hosts --name dnscluster ronin/dnsmasq  &>$LOGDIR/dnscluster-run.log
 
 dnsi=$(docker inspect  dnscluster | grep IPAddress | grep -oE '[0-9\.]+')
 
@@ -318,8 +319,11 @@ spawn_sock Dock1
 FIRSTSOCK="$SOCKPATH/Dock1.sock"
 
 firsti=$(docker inspect  Dock1 | grep IPAddress | grep -oE '[0-9\.]+')
+firstm=$(docker inspect -f '{{.NetworkSettings.MacAddress}}' Dock1)
 echo "$firsti Dock1" >> $HOSTSF
 echo "$firsti Dock1.ci.percona.com" >> $HOSTSF
+echo "$firstm,$firsti,Dock1" >> $RESFILE
+echo "$firstm,$firsti,Dock1.ci.percona.com" >> $RESFILE
 echo "$firsti meant for Dock1"
 
 set -x
@@ -340,6 +344,8 @@ for rest in `seq 2 $NUMC`; do
     echo "$nexti Dock${rest}" >> $HOSTSF
     echo "$nexti Dock${rest}.ci.percona.com" >> $HOSTSF
     echo "$nexti meant for Dock${rest}"
+
+
     if [[ $RSEGMENT == "1" ]];then 
         SEGMENT=$(( RANDOM % (NUMC/2) ))
         segloss[$(( rest-1 ))]=$(( SEGMENT+1 ))
@@ -362,6 +368,10 @@ for rest in `seq 2 $NUMC`; do
         echo "Assertion failed  $nexti,  $(docker inspect  Dock$rest | grep IPAddress | grep -oE '[0-9\.]+') "
         exit 1
     fi
+
+    nextm=$(docker inspect -f '{{.NetworkSettings.MacAddress}}' Dock${rest})
+    echo "$nextm,$nexti,Dock${rest}" >> $RESFILE
+    echo "$nextm,$nexti,Dock${rest}.ci.percona.com" >> $RESFILE
     sleep $(( rest*2 ))
 
 done
