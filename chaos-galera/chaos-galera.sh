@@ -245,7 +245,7 @@ spawn_sock(){
     hostr=$(cut -d: -f1 <<< $hostt)
     portr=$(cut -d: -f2 <<< $hostt)
     local socket=$SOCKPATH/${cnt}.sock
-    socat UNIX-LISTEN:${socket},fork,reuseaddr TCP:$hostr:$portr 2>/dev/null &
+    socat UNIX-LISTEN:${socket},fork,reuseaddr TCP:$hostr:$portr 2>>$LOGDIR/socat-${cnt}.log &
     echo "$cnt also listening on $socket for $hostr:$portr" 
     if [[ -z $SOCKS ]];then 
         SOCKS="$socket"
@@ -485,8 +485,8 @@ while true;do
             nd+=" Dock${x} "
         fi
     done
-    echo "IP Addresses Before:"
-    docker inspect --format='{{.NetworkSettings.IPAddress}}'  $nd
+    #echo "IP Addresses Before:"
+    #docker inspect --format='{{.NetworkSettings.IPAddress}}'  $nd
     set +e
     echo "Restarting $nd"
     docker restart -t 1 $nd
@@ -494,8 +494,8 @@ while true;do
     kill -0 $syspid || break
     RANDOM=$$
    
-    echo "IP Addresses After:"
-    docker inspect --format='{{.NetworkSettings.IPAddress}}'  $nd
+    #echo "IP Addresses After:"
+    #docker inspect --format='{{.NetworkSettings.IPAddress}}'  $nd
     set -e
 done 
 set +x
