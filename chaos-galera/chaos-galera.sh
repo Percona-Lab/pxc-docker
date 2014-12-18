@@ -480,16 +480,16 @@ set +x
 sleep 20
 set -x
 declare -a intf
+RANDOM=$$
 while true;do
     nd=""
-    LOSSNO=$(( RANDOM%(NUMC/2) + 1 ))
-    intf=(`shuf -i 1-$NUMC -n $LOSSNO`)
+    LOSSNO=$(( RANDOM%(NUMC/2) ))
+    if [[ $LOSSNO -le 0 ]];then 
+        LOSSNO=1
+    fi
+    intf=(`shuf -i 2-$NUMC -n $LOSSNO`)
     for x in ${intf[@]};do 
-        if [[ $x -ne 1 ]];then
-            nd+=" Dock${x} "
-        else 
-            LOSSNO=$(( LOSSNO-1 ))
-        fi
+        nd+=" Dock${x} "
     done
     #echo "IP Addresses Before:"
     #docker inspect --format='{{.NetworkSettings.IPAddress}}'  $nd
@@ -498,11 +498,8 @@ while true;do
     docker restart -t 1 $nd
     sleep ${LOSSNO}m
     kill -0 $syspid || break
-    RANDOM=$$
     for x in ${intf[@]};do 
-        if [[ $x -ne 1 ]];then
-            spawn_sock Dock${x}
-        fi
+        spawn_sock Dock${x}
     done
    
     #echo "IP Addresses After:"
