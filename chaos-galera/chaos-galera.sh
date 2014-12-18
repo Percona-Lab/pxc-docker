@@ -479,6 +479,7 @@ while true;do
     kill -0 $syspid || break
     set -e
     sleep ${LOSSNO}m
+    RANDOM=$$
 done 
 set +x
 
