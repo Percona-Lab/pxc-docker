@@ -460,6 +460,7 @@ syspid=$!
 set +x
 
 
+set -x
 declare -a intf
 while true;do
     nd=""
@@ -468,10 +469,12 @@ while true;do
     for x in ${intf[@]};do 
         nd+=" Dock${x} "
     done
+    echo "Restarting $nd"
     docker restart -t 1 $nd
     sleep 30
     kill -0 $syspid && break
 done 
+set +x
 
 
 for s in `seq 1 $NUMC`;do 
