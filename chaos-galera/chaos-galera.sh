@@ -484,13 +484,18 @@ while true;do
             nd+=" Dock${x} "
         fi
     done
+    echo "IP Addresses Before:"
+    docker inspect --format='{{.NetworkSettings.IPAddress}}'  $nd
     set +e
     echo "Restarting $nd"
     docker restart -t 1 $nd
     sleep ${LOSSNO}m
     kill -0 $syspid || break
-    set -e
     RANDOM=$$
+   
+    echo "IP Addresses After:"
+    docker inspect --format='{{.NetworkSettings.IPAddress}}'  $nd
+    set -e
 done 
 set +x
 
