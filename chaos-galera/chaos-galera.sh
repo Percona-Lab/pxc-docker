@@ -462,6 +462,7 @@ syspid=$!
 set +x
 
 
+sleep 20
 set -x
 declare -a intf
 while true;do
@@ -476,9 +477,9 @@ while true;do
     set +e
     echo "Restarting $nd"
     docker restart -t 1 $nd
+    sleep ${LOSSNO}m
     kill -0 $syspid || break
     set -e
-    sleep ${LOSSNO}m
     RANDOM=$$
 done 
 set +x
