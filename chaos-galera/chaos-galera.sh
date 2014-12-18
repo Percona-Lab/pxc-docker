@@ -464,7 +464,7 @@ set -x
 declare -a intf
 while true;do
     nd=""
-    LOSSNO=$(( RANDOM%(NUMC/2) ))
+    LOSSNO=$(( RANDOM%(NUMC/2) + 1 ))
     intf=(`shuf -i 1-$NUMC -n $LOSSNO`)
     for x in ${intf[@]};do 
         nd+=" Dock${x} "
@@ -472,7 +472,7 @@ while true;do
     echo "Restarting $nd"
     docker restart -t 1 $nd
     sleep 30
-    kill -0 $syspid && break
+    kill -0 $syspid || break
 done 
 set +x
 
