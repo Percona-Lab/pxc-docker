@@ -484,7 +484,7 @@ RANDOM=$$
 while true;do
     nd=""
     LOSSNO=$(( RANDOM%(NUMC/2) ))
-    if [[ $LOSSNO -le 0 ]];then 
+    if [[ $LOSSNO -eq 0 ]];then 
         LOSSNO=1
     fi
     intf=(`shuf -i 2-$NUMC -n $LOSSNO`)
@@ -496,9 +496,10 @@ while true;do
     set +e
     echo "Restarting $nd"
     docker restart -t 1 $nd
-    sleep ${LOSSNO}m
+    #sleep ${LOSSNO}m
     kill -0 $syspid || break
     for x in ${intf[@]};do 
+        wait_for_up Dock${x}
         spawn_sock Dock${x}
     done
    
