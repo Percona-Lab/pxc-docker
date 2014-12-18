@@ -471,8 +471,8 @@ while true;do
     done
     echo "Restarting $nd"
     docker restart -t 1 $nd
-    sleep 30
     kill -0 $syspid || break
+    sleep 30
 done 
 set +x
 
