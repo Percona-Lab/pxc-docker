@@ -455,7 +455,7 @@ fi
 
 
 set -x
-( sysbench --test=$SDIR/$STEST.lua --db-driver=mysql --mysql-db=test --mysql-engine-trx=yes --mysql-ignore-errors=1047,1213  --mysql-table-engine=innodb --mysql-socket=$SOCKS --mysql-user=root  --num-threads=$NUMT --init-rng=on --max-requests=1870000000    --max-time=$SDURATION  --oltp_index_updates=20 --oltp_non_index_updates=20 --oltp-auto-inc=$AUTOINC --oltp_distinct_ranges=15 --report-interval=1  --oltp_tables_count=$TCOUNT run 2>&1 | tee $LOGDIR/sysbench_rw_run.txt ) &
+( sysbench --test=$SDIR/$STEST.lua --db-driver=mysql --mysql-db=test --mysql-engine-trx=yes --mysql-ignore-errors=1047,1213,2013  --mysql-table-engine=innodb --mysql-socket=$SOCKS --mysql-user=root  --num-threads=$NUMT --init-rng=on --max-requests=1870000000    --max-time=$SDURATION  --oltp_index_updates=20 --oltp_non_index_updates=20 --oltp-auto-inc=$AUTOINC --oltp_distinct_ranges=15 --report-interval=1  --oltp_tables_count=$TCOUNT run 2>&1 | tee $LOGDIR/sysbench_rw_run.txt ) &
 syspid=$!
 set +x
 
@@ -471,8 +471,10 @@ while true;do
     done
     echo "Restarting $nd"
     docker restart -t 1 $nd
+    set +e
     kill -0 $syspid || break
-    sleep 30
+    set -e
+    sleep 1m
 done 
 set +x
 
