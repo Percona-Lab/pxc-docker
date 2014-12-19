@@ -496,6 +496,7 @@ syspid=$!
 set +x
 
 
+
 sleep 20
 set -x
 declare -a intf
@@ -510,9 +511,11 @@ while true;do
     #echo "IP Addresses Before:"
     #docker inspect --format='{{.NetworkSettings.IPAddress}}'  $nd
     set +e
-    echo "Restarting $nd"
-    docker restart -t 1 $nd
+    echo "Killing $nd with SIGKILL"
+    sudo kill -9 $(docker inspect --format='{{.State.Pid}}'  $nd)
     #sleep ${LOSSNO}m
+    echo "Starting containers $nd again"
+    docker start $nd
     kill -0 $syspid || break
     set +x
     for x in ${intf[@]};do
