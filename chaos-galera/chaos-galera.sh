@@ -18,6 +18,7 @@ RANDOM=$$
 BUILD_NUMBER=${BUILD_NUMBER:-$RANDOM}
 SLEEPCNT=${SLEEPCNT:-10}
 FSYNC=${FSYNC:-0}
+RESCNT=$SLEEPCNT 
 
 TMPD=${TMPDIR:-/tmp}
 COREDIR=${COREDIR:-/var/crash}
@@ -498,6 +499,7 @@ set +x
 sleep 20
 set -x
 declare -a intf
+SLEEPCNT=$RESCNT
 RANDOM=$$
 while true;do
     nd=""
