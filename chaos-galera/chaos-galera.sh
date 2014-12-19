@@ -258,6 +258,19 @@ spawn_sock(){
     fi
 }
 
+kill_sock(){
+    local cnt=$1
+    hostt=$(docker port $cnt 3306)
+    hostr=$(cut -d: -f1 <<< $hostt)
+    portr=$(cut -d: -f2 <<< $hostt)
+    local socket=$SOCKPATH/${cnt}.sock
+    [[ -f $socket ]] && {
+        pkill -9 -f $socket
+        rm -f $socket
+    }
+}
+
+
 belongs(){
     local elem=$1
     shift
@@ -483,11 +496,7 @@ declare -a intf
 RANDOM=$$
 while true;do
     nd=""
-    LOSSNO=$(( RANDOM%(NUMC/2) ))
-    if [[ $LOSSNO -eq 0 ]];then 
-        LOSSNO=1
-    fi
-    intf=(`shuf -i 2-$NUMC -n $LOSSNO`)
+    intf=(`shuf -i 2-$NUMC -n $(( NUMC/2 - 1 ))`)
     for x in ${intf[@]};do 
         nd+=" Dock${x} "
     done
