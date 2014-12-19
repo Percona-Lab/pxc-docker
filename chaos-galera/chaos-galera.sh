@@ -208,17 +208,22 @@ wait_for_up(){
     local cnt=$1
     local count=0
     local hostt=$(docker port $cnt 3306)
+    local extcode=$?
 
-    if [[ $? -ne 0 ]];then 
+    while true;do
+        if [[ $extcode -eq 0 ]];then 
+            break
+        fi
         sleep 5
         hostt=$(docker port $cnt 3306)
+        extcode=$?
         if [[ $count -gt $SLEEPCNT ]];then 
             echo "Failure"
             exit 1
         else 
             count=$(( count+1 ))
         fi
-    fi
+    done
 
     local hostr=$(cut -d: -f1 <<< $hostt)
     local portr=$(cut -d: -f2 <<< $hostt)
@@ -507,10 +512,12 @@ while true;do
     docker restart -t 1 $nd
     #sleep ${LOSSNO}m
     kill -0 $syspid || break
-    for x in ${intf[@]};do 
+    set +x
+    for x in ${intf[@]};do
         wait_for_up Dock${x}
         spawn_sock Dock${x}
     done
+    set -x
    
     #echo "IP Addresses After:"
     #docker inspect --format='{{.NetworkSettings.IPAddress}}'  $nd
