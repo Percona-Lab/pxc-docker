@@ -516,7 +516,9 @@ while true;do
     sudo kill -9 $(docker inspect --format='{{.State.Pid}}'  $nd)
     #sleep ${LOSSNO}m
     echo "Starting containers $nd again"
-    docker start $nd
+    for x in ${intf[@]};do 
+        docker start Dock${x}
+    done
     kill -0 $syspid || break
     set +x
     for x in ${intf[@]};do
