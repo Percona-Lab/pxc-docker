@@ -176,6 +176,7 @@ cleanup(){
     for s in `seq 1 $NUMC`;do 
         sudo journalctl --since=$(( then-now )) | grep  "Dock${s}-" > $LOGDIR/journald-Dock${s}.log
     done
+    sudo journalctl --since=$(( then-now ))  > $LOGDIR/journald-all.log
     tar cvzf $TMPD/results-${BUILD_NUMBER}.tar.gz $LOGDIR  
     set -e 
 
