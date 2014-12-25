@@ -517,7 +517,7 @@ while true;do
     #sleep ${LOSSNO}m
     echo "Starting containers $nd again"
     for x in ${intf[@]};do 
-        docker start Dock${x}
+        docker restart -t 1 Dock${x}
     done
     kill -0 $syspid || break
     set +x
