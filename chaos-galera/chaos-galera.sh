@@ -512,6 +512,7 @@ while true;do
     #echo "IP Addresses Before:"
     #docker inspect --format='{{.NetworkSettings.IPAddress}}'  $nd
     set +e
+    kill -0 $syspid || break
     echo "Killing $nd with SIGKILL"
     sudo kill -9 $(docker inspect --format='{{.State.Pid}}'  $nd)
     #sleep ${LOSSNO}m
