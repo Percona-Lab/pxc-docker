@@ -558,11 +558,11 @@ set +x
 
 for s in `seq 1 $NUMC`;do 
 
-    stat1=$(mysql -nNE -h 0.0.0.0 -P $(docker port Dock${s} 3306) -u root -e "show global status like 'wsrep_cluster_status'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
-    stat2=$(mysql -nNE -h 0.0.0.0 -P $(docker port Dock${s} 3306)  -u root -e "show global status like 'wsrep_local_state_comment'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
-    stat3=$(mysql -nNE -h 0.0.0.0 -P $(docker port Dock${s} 3306)  -u root -e "show global status like 'wsrep_local_recv_queue'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
-    stat4=$(mysql -nNE -h 0.0.0.0 -P $(docker port Dock${s} 3306)  -u root -e "show global status like 'wsrep_local_send_queue'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
-    stat5=$(mysql -nNE -h 0.0.0.0 -P $(docker port Dock${s} 3306)  -u root -e "show global status like 'wsrep_evs_delayed'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
+    stat1=$(mysql -nNE -h $(docker port Dock${s} 3306 | cut -d: -f1) -P $(docker port Dock${s} 3306 | cut -d: -f2) -u root -e "show global status like 'wsrep_cluster_status'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
+    stat2=$(mysql -nNE -h $(docker port Dock${s} 3306 | cut -d: -f1) -P $(docker port Dock${s} 3306 | cut -d: -f2)  -u root -e "show global status like 'wsrep_local_state_comment'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
+    stat3=$(mysql -nNE -h $(docker port Dock${s} 3306 | cut -d: -f1) -P $(docker port Dock${s} 3306 | cut -d: -f2)  -u root -e "show global status like 'wsrep_local_recv_queue'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
+    stat4=$(mysql -nNE -h $(docker port Dock${s} 3306 | cut -d: -f1) -P $(docker port Dock${s} 3306 | cut -d: -f2)  -u root -e "show global status like 'wsrep_local_send_queue'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
+    stat5=$(mysql -nNE -h $(docker port Dock${s} 3306 | cut -d: -f1) -P $(docker port Dock${s} 3306 | cut -d: -f2)  -u root -e "show global status like 'wsrep_evs_delayed'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
     if [[ $stat1 != 'Primary' || $stat2 != 'Synced'  ]];then 
         echo "Dock${s} seems to be not stable: $stat1, $stat2, $stat3, $stat4, $stat5"
     else 
@@ -580,11 +580,11 @@ while true;do
     whichisstr=""
     for s in `seq 1 $NUMC`;do 
 
-        stat1=$(mysql -nNE -h 0.0.0.0 -P $(docker port Dock${s} 3306) -u root -e "show global status like 'wsrep_cluster_status'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
-        stat2=$(mysql -nNE -h 0.0.0.0 -P $(docker port Dock${s} 3306)  -u root -e "show global status like 'wsrep_local_state_comment'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
-        stat3=$(mysql -nNE -h 0.0.0.0 -P $(docker port Dock${s} 3306)  -u root -e "show global status like 'wsrep_local_recv_queue'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
-        stat4=$(mysql -nNE -h 0.0.0.0 -P $(docker port Dock${s} 3306)  -u root -e "show global status like 'wsrep_local_send_queue'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
-        stat5=$(mysql -nNE -h 0.0.0.0 -P $(docker port Dock${s} 3306)  -u root -e "show global status like 'wsrep_evs_delayed'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
+        stat1=$(mysql -nNE -h $(docker port Dock${s} 3306 | cut -d: -f1) -P $(docker port Dock${s} 3306 | cut -d: -f2) -u root -e "show global status like 'wsrep_cluster_status'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
+        stat2=$(mysql -nNE -h $(docker port Dock${s} 3306 | cut -d: -f1) -P $(docker port Dock${s} 3306 | cut -d: -f2)  -u root -e "show global status like 'wsrep_local_state_comment'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
+        stat3=$(mysql -nNE -h $(docker port Dock${s} 3306 | cut -d: -f1) -P $(docker port Dock${s} 3306 | cut -d: -f2)  -u root -e "show global status like 'wsrep_local_recv_queue'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
+        stat4=$(mysql -nNE -h $(docker port Dock${s} 3306 | cut -d: -f1) -P $(docker port Dock${s} 3306 | cut -d: -f2)  -u root -e "show global status like 'wsrep_local_send_queue'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
+        stat5=$(mysql -nNE -h $(docker port Dock${s} 3306 | cut -d: -f1) -P $(docker port Dock${s} 3306 | cut -d: -f2)  -u root -e "show global status like 'wsrep_evs_delayed'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
         if [[ $stat1 != 'Primary' || $stat2 != 'Synced'  ]];then 
             echo "FATAL: Dock${s} seems to be STILL unstable: $stat1, $stat2, $stat3, $stat4, $stat5"
             stat=$(mysql -nNE -S $SOCKPATH/Dock${s}.sock -u root -e "show global status like 'wsrep_local_state'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
