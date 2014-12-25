@@ -10,6 +10,9 @@ STEST=${STEST:-oltp}
 AUTOINC=${AUTOINC:-off}
 TCOUNT=${TCOUNT:-10}
 SHUTDN=${SHUTDN:-yes}
+WSREP_OPT=${WSREP_OPT:-""}
+NODE_RETRY=${NODE_RETRY:-1}
+STSLEEP=${STSLEEP:-5}
 DELAY="${DELAY:-3ms}"
 CMD=${CMD:-"/pxc/bin/mysqld --defaults-extra-file=/pxc/my.cnf --basedir=/pxc --user=mysql --skip-grant-tables --query_cache_type=0  --wsrep_slave_threads=16 --innodb_autoinc_lock_mode=2  --query_cache_size=0 --innodb_flush_log_at_trx_commit=0 --innodb_file_per_table "}
 LPATH=${SPATH:-/usr/share/doc/sysbench/tests/db}
@@ -221,7 +224,7 @@ wait_for_up(){
         extcode=$?
         if [[ $count -gt $SLEEPCNT ]];then 
             echo "Failure"
-            exit 1
+            return 1
         else 
             count=$(( count+1 ))
         fi
@@ -236,7 +239,7 @@ wait_for_up(){
         sleep 5
         if [[ $count -gt $SLEEPCNT ]];then 
             echo "Failure"
-            exit 1
+            return 1
         else 
             count=$(( count+1 ))
         fi
@@ -337,9 +340,9 @@ else
     PRELOAD=""
 fi
 
-docker run  -e LD_PRELOAD=$PRELOAD -p ${BASEPRT}:3306 -p $(( BASEPRT+1 )):4567 -p $(( BASEPRT+2 )):4568 -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>/dev/null
+docker run  -e LD_PRELOAD=$PRELOAD -p ${BASEPRT}:3306 -p $(( BASEPRT+1 )):4567 -p $(( BASEPRT+2 )):4568 -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; $WSREP_OPT evs.version=1'" &>/dev/null
 
-wait_for_up Dock1
+wait_for_up Dock1 || exit 1
 spawn_sock Dock1
 FIRSTSOCK="$SOCKPATH/Dock1.sock"
 
@@ -385,7 +388,7 @@ for rest in `seq 2 $NUMC`; do
     fi
     set -x
     BASEPRT=$(( BASEPRT+5 ))
-    docker run  -e LD_PRELOAD=$PRELOAD -d  -v /dev/log:/dev/log -p ${BASEPRT}:3306 -p $(( BASEPRT+1 )):4567 -p $(( BASEPRT+2 )):4568  -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:/pxc/crash $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>/dev/null
+    docker run  -e LD_PRELOAD=$PRELOAD -d  -v /dev/log:/dev/log -p ${BASEPRT}:3306 -p $(( BASEPRT+1 )):4567 -p $(( BASEPRT+2 )):4568  -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:/pxc/crash $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='gmcast.segment=$SEGMENT; $WSREP_OPT evs.version=1'" &>/dev/null
     set +x
     #CSTR="${CSTR},Dock${rest}"
 
@@ -404,7 +407,7 @@ done
 
 echo "Waiting for all servers"
 for s in `seq 2 $NUMC`;do 
-    wait_for_up Dock$s
+    wait_for_up Dock$s || exit 1
     spawn_sock Dock$s
 done
 
@@ -516,6 +519,10 @@ while true;do
     echo "Killing $nd with SIGKILL"
     sudo kill -9 $(docker inspect --format='{{.State.Pid}}'  $nd)
     #sleep ${LOSSNO}m
+
+    echo "Sleeping for $STSLEEP units of time"
+    sleep $STSLEEP
+
     echo "Starting containers $nd again"
     for x in ${intf[@]};do 
         docker restart -t 1 Dock${x}
@@ -523,7 +530,21 @@ while true;do
     kill -0 $syspid || break
     set +x
     for x in ${intf[@]};do
-        wait_for_up Dock${x}
+        while true;do
+            if ! wait_for_up Dock${x};then 
+                if [[ $NODE_RETRY -eq 0 ]];then 
+                    echo "Failed after $NODE_RETRY retries"
+                    exit 1
+                else
+                    echo "Retrying Dock${x} $NODE_RETRY time"
+                    sudo kill -9 $(docker inspect --format='{{.State.Pid}}'  Dock${x})
+                    docker restart -t 1 Dock${x}
+                    NODE_RETRY=$(( NODE_RETRY - 1 ))
+                fi
+            else 
+                break
+            fi
+        done
         spawn_sock Dock${x}
     done
     set -x
