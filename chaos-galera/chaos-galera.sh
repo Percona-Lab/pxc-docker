@@ -193,6 +193,9 @@ cleanup(){
         done 
     fi
 
+    pgid=$(ps -o pgid= $$ | grep -o '[0-9]*')
+    kill -TERM -$pgid || true
+
 }
 
 preclean(){
