@@ -289,7 +289,7 @@ rm -f $HOSTSF && touch $HOSTSF
 chcon  -Rt svirt_sandbox_file_t  $HOSTSF &>/dev/null  || true
 chcon  -Rt svirt_sandbox_file_t  $COREDIR &>/dev/null  || true
 
-docker run --add-host repo.percona.com:10.10.9.209   -d    -i -v /dev/log:/dev/log -e SST_SYSLOG_TAG=dnsmasq -v $HOSTSF:/dnsmasq.hosts --name dnscluster ronin/dnsmasq &>$LOGDIR/dnscluster-run.log
+docker run  -d    -i -v /dev/log:/dev/log -e SST_SYSLOG_TAG=dnsmasq -v $HOSTSF:/dnsmasq.hosts --name dnscluster ronin/dnsmasq &>$LOGDIR/dnscluster-run.log
 
 dnsi=$(docker inspect  dnscluster | grep IPAddress | grep -oE '[0-9\.]+')
 
@@ -310,7 +310,7 @@ else
     PRELOAD=""
 fi
 
-docker run --add-host repo.percona.com:10.10.9.209  -P -e LD_PRELOAD=$PRELOAD -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>/dev/null
+docker run -P -e LD_PRELOAD=$PRELOAD -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>/dev/null
 
 wait_for_up Dock1
 spawn_sock Dock1
@@ -356,7 +356,7 @@ for rest in `seq 2 $NUMC`; do
         PRELOAD=""
     fi
     set -x
-    docker run --add-host repo.percona.com:10.10.9.209  -P -e LD_PRELOAD=$PRELOAD -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:/pxc/crash $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>/dev/null
+    docker run -P -e LD_PRELOAD=$PRELOAD -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:/pxc/crash $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>/dev/null
     set +x
     #CSTR="${CSTR},Dock${rest}"
 
