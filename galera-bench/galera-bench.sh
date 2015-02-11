@@ -271,7 +271,7 @@ preclean
 
 if [[ $skip == "false" ]];then
     pushd ../docker-tarball
-    docker build  --rm -q  -t ronin/pxc:tarball . 2>&1 | tee $LOGDIR/Dock-pxc.log 
+    docker build --add-host repo.percona.com:10.10.9.209   --rm -q  -t ronin/pxc:tarball . 2>&1 | tee $LOGDIR/Dock-pxc.log 
     popd
     # Required for core-dump analysis
     # rm -rf Percona-XtraDB-Cluster || true
