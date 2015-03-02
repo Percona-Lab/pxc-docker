@@ -42,6 +42,7 @@ SDIR="$LPATH"
 export PATH="/usr/sbin:$PATH"
 
 linter="eth0"
+FORCE_FTWRL=${FORCE_FTWRL:-0}
 
 FIRSTD=$(cut -d" " -f1 <<< $DELAY | tr -d 'ms')
 RESTD=$(cut -d" " -f2- <<< $DELAY)
@@ -276,7 +277,7 @@ preclean
 
 if [[ $skip == "false" ]];then
     pushd ../docker-tarball
-    docker build  --rm -q  -t ronin/pxc:tarball . 2>&1 | tee $LOGDIR/Dock-pxc.log 
+    docker build  --rm -q  -t ronin/pxc:tarball -f Dockerfile.centos:centos7 . 2>&1 | tee $LOGDIR/Dock-pxc.log 
     popd
     # Required for core-dump analysis
     # rm -rf Percona-XtraDB-Cluster || true
@@ -314,7 +315,7 @@ else
     PRELOAD=""
 fi
 
-docker run -P -e LD_PRELOAD=$PRELOAD  -d -t -i -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1;  evs.info_log_mask=0x3'" &>$LOGDIR/run-Dock1.log
+docker run -P -e LD_PRELOAD=$PRELOAD -e FORCE_FTWRL=$FORCE_FTWRL   -d -t -i -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1;  evs.info_log_mask=0x3'" &>$LOGDIR/run-Dock1.log
 
 wait_for_up Dock1
 spawn_sock Dock1
@@ -357,7 +358,7 @@ for rest in `seq 2 $NUMC`; do
         PRELOAD=""
     fi
     set -x
-    docker run -P -e LD_PRELOAD=$PRELOAD -d -t -i -h Dock$rest -v $COREDIR:/pxc/crash $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1; evs.info_log_mask=0x3'" &>$LOGDIR/run-Dock${rest}.log
+    docker run -P -e LD_PRELOAD=$PRELOAD -e FORCE_FTWRL=$FORCE_FTWRL -d -t -i -h Dock$rest -v $COREDIR:/pxc/crash $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1; evs.info_log_mask=0x3'" &>$LOGDIR/run-Dock${rest}.log
     set +x
     #CSTR="${CSTR},Dock${rest}"
 

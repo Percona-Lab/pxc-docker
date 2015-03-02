@@ -45,6 +45,7 @@ linter="eth0"
 
 FIRSTD=$(cut -d" " -f1 <<< $DELAY | tr -d 'ms')
 RESTD=$(cut -d" " -f2- <<< $DELAY)
+FORCE_FTWRL=${FORCE_FTWRL:-0}
 
 echo "
 [sst]
@@ -303,7 +304,7 @@ preclean
 
 if [[ $skip == "false" ]];then
     pushd ../docker-tarball
-    docker build  --rm -q  -t ronin/pxc:tarball . 2>&1 | tee $LOGDIR/Dock-pxc.log 
+    docker build  --rm -q  -t ronin/pxc:tarball -f Dockerfile.centos:centos7 . 2>&1 | tee $LOGDIR/Dock-pxc.log 
     popd
     # Required for core-dump analysis
     # rm -rf Percona-XtraDB-Cluster || true
@@ -343,7 +344,7 @@ else
     PRELOAD=""
 fi
 
-docker run  -e LD_PRELOAD=$PRELOAD -p ${BASEPRT}:3306 -p $(( BASEPRT+1 )):4567 -p $(( BASEPRT+2 )):4568 -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; $WSREP_OPT evs.version=1'" &>/dev/null
+docker run  -e LD_PRELOAD=$PRELOAD -e FORCE_FTWRL=$FORCE_FTWRL -p ${BASEPRT}:3306 -p $(( BASEPRT+1 )):4567 -p $(( BASEPRT+2 )):4568 -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='gmcast.segment=$SEGMENT; $WSREP_OPT evs.version=1'" &>/dev/null
 
 wait_for_up Dock1 || exit 1
 spawn_sock Dock1
@@ -391,7 +392,7 @@ for rest in `seq 2 $NUMC`; do
     fi
     set -x
     BASEPRT=$(( BASEPRT+5 ))
-    docker run  -e LD_PRELOAD=$PRELOAD -d  -v /dev/log:/dev/log -p ${BASEPRT}:3306 -p $(( BASEPRT+1 )):4567 -p $(( BASEPRT+2 )):4568  -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:/pxc/crash $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='gmcast.segment=$SEGMENT; $WSREP_OPT evs.version=1'" &>/dev/null
+    docker run  -e LD_PRELOAD=$PRELOAD -e FORCE_FTWRL=$FORCE_FTWRL -d  -v /dev/log:/dev/log -p ${BASEPRT}:3306 -p $(( BASEPRT+1 )):4567 -p $(( BASEPRT+2 )):4568  -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:/pxc/crash $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='gmcast.segment=$SEGMENT; $WSREP_OPT evs.version=1'" &>/dev/null
     set +x
     #CSTR="${CSTR},Dock${rest}"
 
