@@ -33,6 +33,10 @@ SOCKS=""
 SOCKPATH="/tmp/pxc-socks"
 FORCE_FTWRL=${FORCE_FTWRL:-0}
 
+if [[ ${BDEBUG:-0} -eq 1 ]];then 
+    set -x
+fi
+
 SDIR="$LPATH"
 export PATH="/usr/sbin:$PATH"
 
