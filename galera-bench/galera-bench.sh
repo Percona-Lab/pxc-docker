@@ -271,7 +271,8 @@ preclean
 
 if [[ $skip == "false" ]];then
     pushd ../docker-tarball
-    docker build  --rm -q  -t ronin/pxc:tarball -f Dockerfile.ftwrl . 2>&1 | tee $LOGDIR/Dock-pxc.log 
+    sed -i -e "s/centos:centos7/$PLATFORM/" $DFILE 
+    docker build  --rm -q  -t ronin/pxc:tarball -f $DFILE . 2>&1 | tee $LOGDIR/Dock-pxc.log 
     popd
     # Required for core-dump analysis
     # rm -rf Percona-XtraDB-Cluster || true
