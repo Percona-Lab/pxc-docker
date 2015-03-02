@@ -35,6 +35,10 @@ EXCL=${EXCL:-1}
 VSYNC=${VSYNC:-1}
 CATAL=${COREONFATAL:-0}
 
+if [[ ${BDEBUG:-0} -eq 1 ]];then 
+    set -x
+fi
+
 SOCKS=""
 SOCKPATH="/tmp/pxc-socks"
 
@@ -277,7 +281,7 @@ preclean
 
 if [[ $skip == "false" ]];then
     pushd ../docker-tarball
-    docker build  --rm -q  -t ronin/pxc:tarball -f Dockerfile.centos:centos7 . 2>&1 | tee $LOGDIR/Dock-pxc.log 
+    docker build  --rm -q  -t ronin/pxc:tarball -f Dockerfile.centos7-64 . 2>&1 | tee $LOGDIR/Dock-pxc.log 
     popd
     # Required for core-dump analysis
     # rm -rf Percona-XtraDB-Cluster || true
