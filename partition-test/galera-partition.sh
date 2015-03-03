@@ -1,4 +1,4 @@
-#!/bin/bash -u
+#!/bin/bash -ue
 
 skip=true
 NUMC=${NUMC:-3}
