@@ -374,7 +374,7 @@ for s in `seq 2 $NUMC`;do
     spawn_sock Dock$s
 done
 
-wait $syspid 
+wait $syspid || true
 
 sleep 10
 
