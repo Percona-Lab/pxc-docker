@@ -326,9 +326,7 @@ echo "$firsti Dock1" >> $HOSTSF
 echo "$firsti Dock1.ci.percona.com" >> $HOSTSF
 echo "$firsti meant for Dock1"
 
-set -x
 sysbench --test=$LPATH/parallel_prepare.lua ---report-interval=10  --oltp-auto-inc=$AUTOINC --mysql-db=test  --db-driver=mysql --num-threads=$NUMT --mysql-engine-trx=yes --mysql-table-engine=innodb --mysql-socket=$FIRSTSOCK --mysql-user=root  --oltp-table-size=$TSIZE --oltp_tables_count=$TCOUNT    prepare 2>&1 | tee $LOGDIR/sysbench_prepare.txt 
-set +x
 
 mysql -S $FIRSTSOCK -u root -e "create database testdb;" || true
 
@@ -336,10 +334,8 @@ mysql -S $FIRSTSOCK -u root -e "create database testdb;" || true
 nexti=$firsti
 sleep 5
 
-set -x
 sysbench --test=$SDIR/$STEST.lua --db-driver=mysql --mysql-db=test --mysql-engine-trx=yes --mysql-ignore-errors=1047,1213 --mysql-table-engine=innodb --mysql-socket=$FIRSTSOCK --mysql-user=root  --num-threads=$NUMT --init-rng=on --max-requests=1870000000    --max-time=$(( NUMC*10 ))  --oltp_index_updates=20 --oltp_non_index_updates=20 --oltp-auto-inc=$AUTOINC --oltp_distinct_ranges=15 --report-interval=1  --oltp_tables_count=$TCOUNT run &>$LOGDIR/sysbench-run-0.txt & 
 syspid=$!
-set +x
 
 for rest in `seq 2 $NUMC`; do
     echo "Starting node#$rest"
@@ -360,9 +356,7 @@ for rest in `seq 2 $NUMC`; do
     else 
         PRELOAD=""
     fi
-    set -x
     docker run -P -e LD_PRELOAD=$PRELOAD -e FORCE_FTWRL=$FORCE_FTWRL -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:/pxc/crash $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1'" &>/dev/null
-    set +x
     #CSTR="${CSTR},Dock${rest}"
 
     if [[ $(docker inspect  Dock$rest | grep IPAddress | grep -oE '[0-9\.]+') != $nexti ]];then 
@@ -470,14 +464,10 @@ mysql -S $FIRSTSOCK -u root -e "create database test;" || true
 mysql -S $FIRSTSOCK -u root -e "create database testdb;" || true
 
 echo "Preparing again!"
-set -x
 sysbench --test=$LPATH/parallel_prepare.lua ---report-interval=10  --oltp-auto-inc=$AUTOINC --mysql-db=test  --db-driver=mysql --num-threads=$NUMT --mysql-engine-trx=yes --mysql-table-engine=innodb --mysql-socket=$SOCKS --mysql-user=root  --oltp-table-size=$TSIZE --oltp_tables_count=$TCOUNT    prepare 2>&1 | tee $LOGDIR/sysbench_prepare-2.txt 
-set +x
 
 
-set -x
     timeout -k9 $(( SDURATION+200 )) sysbench --test=$SDIR/$STEST.lua --db-driver=mysql --mysql-db=test --mysql-engine-trx=yes --mysql-table-engine=innodb --mysql-socket=$SOCKS --mysql-user=root  --num-threads=$NUMT --init-rng=on --max-requests=1870000000    --max-time=$SDURATION  --oltp_index_updates=20 --oltp_non_index_updates=20 --oltp-auto-inc=$AUTOINC --oltp_distinct_ranges=15 --report-interval=1  --oltp_tables_count=$TCOUNT run 2>&1 | tee $LOGDIR/sysbench_rw_run.txt
-set +x
 
 
 for s in `seq 1 $NUMC`;do 
@@ -560,9 +550,7 @@ fi
 echo "Sleeping 5s before drop table"
 sleep 5
 
-set -x
  timeout -k9 $(( SDURATION+200 )) sysbench --test=$LPATH/parallel_prepare.lua ---report-interval=5  --oltp-auto-inc=$AUTOINC --mysql-db=test  --db-driver=mysql --num-threads=$NUMT --mysql-engine-trx=yes --mysql-table-engine=innodb --mysql-socket=$SOCKS --mysql-user=root  --oltp-table-size=$TSIZE --oltp_tables_count=$TCOUNT    cleanup 2>&1 | tee $LOGDIR/sysbench_cleanup.txt 
-set +x
 
 mysql -S $FIRSTSOCK  -u root -e "drop database testdb;" || true
 
