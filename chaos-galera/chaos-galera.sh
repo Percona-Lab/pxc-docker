@@ -327,7 +327,7 @@ rm -f $RESFILE && touch $RESFILE
 chcon  -Rt svirt_sandbox_file_t  $HOSTSF &>/dev/null  || true
 chcon  -Rt svirt_sandbox_file_t  $COREDIR &>/dev/null  || true
 
-docker run  -d  -p 20000:53   -i -v /dev/log:/dev/log -e SST_SYSLOG_TAG=dnsmasq -v $RESFILE:/dnsmasq.res -v $HOSTSF:/dnsmasq.hosts --name dnscluster ronin/dnsmasq  &>$LOGDIR/dnscluster-run.log
+docker run  -d  -p 20000:53  --rm -i -v /dev/log:/dev/log -e SST_SYSLOG_TAG=dnsmasq -v $RESFILE:/dnsmasq.res -v $HOSTSF:/dnsmasq.hosts --name dnscluster ronin/dnsmasq  &>$LOGDIR/dnscluster-run.log
 
 dnsi=$(docker inspect  dnscluster | grep IPAddress | grep -oE '[0-9\.]+')
 

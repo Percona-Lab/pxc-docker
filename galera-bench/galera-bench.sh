@@ -295,7 +295,7 @@ rm -f $HOSTSF && touch $HOSTSF
 chcon  -Rt svirt_sandbox_file_t  $HOSTSF &>/dev/null  || true
 chcon  -Rt svirt_sandbox_file_t  $COREDIR &>/dev/null  || true
 
-docker run  -d    -i -v /dev/log:/dev/log -e SST_SYSLOG_TAG=dnsmasq -v $HOSTSF:/dnsmasq.hosts --name dnscluster ronin/dnsmasq &>$LOGDIR/dnscluster-run.log
+docker run  -d  --rm   -i -v /dev/log:/dev/log -e SST_SYSLOG_TAG=dnsmasq -v $HOSTSF:/dnsmasq.hosts --name dnscluster ronin/dnsmasq &>$LOGDIR/dnscluster-run.log
 
 dnsi=$(docker inspect  dnscluster | grep IPAddress | grep -oE '[0-9\.]+')
 
@@ -594,5 +594,4 @@ echo "Shutting down servers"
 for s in `seq 1 $NUMC`;do 
     runc Dock$s  mysqladmin shutdown
 done
-
 
