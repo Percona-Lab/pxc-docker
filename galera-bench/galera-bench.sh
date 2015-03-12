@@ -1,4 +1,4 @@
-#!/bin/bash -ue
+#!/bin/bash -uex
 
 then=$(date +%s)
 skip=true
@@ -33,6 +33,9 @@ SOCKS=""
 SOCKPATH="/tmp/pxc-socks"
 FORCE_FTWRL=${FORCE_FTWRL:-0}
 
+if [[ ${BDEBUG:-0} -eq 1 ]];then 
+    set -x
+fi
 
 SDIR="$LPATH"
 export PATH="/usr/sbin:$PATH"
@@ -55,10 +58,6 @@ fi
 # Hack for jenkins only. uh.. 
 if [[ -n ${BUILD_NUMBER:-} && $(groups) != *wheel* ]]; then
     exec sg wheel "$0 $*"
-fi
-
-if [[ ${BDEBUG:-0} -eq 1 ]];then 
-    set -x
 fi
 
 if [[ $PROVIDER == '1' ]];then 
