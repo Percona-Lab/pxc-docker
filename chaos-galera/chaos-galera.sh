@@ -596,7 +596,8 @@ while true;do
         if [[ $stat1 != 'Primary' || $stat2 != 'Synced'  ]];then 
             echo "FATAL: Dock${s} seems to be STILL unstable: $stat1, $stat2, $stat3, $stat4, $stat5"
             stat=$(mysql -nNE -S $SOCKPATH/Dock${s}.sock -u root -e "show global status like 'wsrep_local_state'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
-            if  [[ $stat1 == 'Primary' && ( $stat == '2' || $stat == '1' ) ]];then 
+            echo "wsrep_local_state of Dock${s} is $stat"
+            if  [[ $stat1 == 'Primary' && ( $stat == '2' || $stat == '1' || $stat == '3' ) ]];then 
                 exitfatal=3
                 whichisstr="Dock${s}"
                 break
@@ -628,7 +629,7 @@ for s in `seq 1 $NUMC`;do
 
     for x in `seq 1 $TCOUNT`;do
         echo "For table test.sbtest$x from node Dock${s}" | tee -a $LOGDIR/sanity.log
-        mysql -S $SOCKPATH/Dock${s}.sock -u root -e "select count(*) from test.sbtest$x" &>>$LOGDIR/sanity.log || exitfatal=1
+        mysql -S $SOCKPATH/Dock${s}.sock -u root -e "select count(*) from test.sbtest$x" | tee -a $LOGDIR/sanity.log || exitfatal=1
     done 
 done
 
