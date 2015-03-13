@@ -597,7 +597,7 @@ while true;do
             echo "FATAL: Dock${s} seems to be STILL unstable: $stat1, $stat2, $stat3, $stat4, $stat5"
             stat=$(mysql -nNE -S $SOCKPATH/Dock${s}.sock -u root -e "show global status like 'wsrep_local_state'" 2>>$LOGDIR/mysql-Dock${s}.log | tail -1)
             echo "wsrep_local_state of Dock${s} is $stat"
-            if  [[ $stat1 == 'Primary' && ( $stat == '2' || $stat == '1' || $stat == '3' ) ]];then 
+            if  [[ $stat1 == 'Primary' && ( $stat == '2' || $stat == '1' || $stat == '3' || $stat2 == Join* || $stat2 == Don* ) ]];then 
                 exitfatal=3
                 whichisstr="Dock${s}"
                 break
