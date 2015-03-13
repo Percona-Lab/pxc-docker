@@ -178,7 +178,7 @@ cleanup(){
     for s in `seq 1 $NUMC`;do 
         sudo journalctl --since=$(( then-now )) | grep  "Dock${s}-" > $LOGDIR/journald-Dock${s}.log
     done
-    sudo journalctl --since=$(( then-now ))  > $LOGDIR/journald.log
+    sudo journalctl -b  > $LOGDIR/journald-all.log
     tar cvzf $TMPD/results-${BUILD_NUMBER}.tar.gz $LOGDIR  
     set -e 
 
@@ -188,7 +188,7 @@ cleanup(){
         echo "Core files found"
         for cor in $COREDIR/*.core;do 
             cnt=$(cut -d. -f1 <<< $cor)
-            sudo gdb $NBASE/bin/mysqld --quiet --batch --core=$cor -ex "set logging file $LOGDIR/$cnt.trace" --command=backtrace.gdb
+            sudo gdb $NBASE/bin/mysqld --quiet --batch --core=$cor -ex "set logging file $LOGDIR/$cnt.trace" --command=../backtrace.gdb
         done 
     fi
 

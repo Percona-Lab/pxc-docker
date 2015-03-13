@@ -184,7 +184,7 @@ cleanup(){
     for s in `seq 1 $NUMC`;do 
         sudo journalctl --since=$(( then-now )) | grep  "Dock${s}-" > $LOGDIR/journald-Dock${s}.log
     done
-    sudo journalctl --since=$(( then-now ))  > $LOGDIR/journald-all.log
+    sudo journalctl -b  > $LOGDIR/journald-all.log
     tar cvzf $TMPD/results-${BUILD_NUMBER}.tar.gz $LOGDIR  
     set -e 
 
@@ -194,7 +194,7 @@ cleanup(){
         echo "Core files found"
         for cor in $COREDIR/*.core;do 
             cnt=$(cut -d. -f1 <<< $cor)
-            sudo gdb $NBASE/bin/mysqld --quiet --batch --core=$cor -ex "set logging file $LOGDIR/$cnt.trace" --command=backtrace.gdb
+            sudo gdb $NBASE/bin/mysqld --quiet --batch --core=$cor -ex "set logging file $LOGDIR/$cnt.trace" --command=../backtrace.gdb
         done 
     fi
 
@@ -308,7 +308,7 @@ preclean
 
 if [[ $skip == "false" ]];then
     pushd ../docker-tarball
-    docker build  --rm -q  -t ronin/pxc:tarball -f Dockerfile.centos7-64 . 2>&1 | tee $LOGDIR/Dock-pxc.log 
+    docker build  --rm -t ronin/pxc:tarball -f Dockerfile.centos7-64 . 2>&1 | tee $LOGDIR/Dock-pxc.log 
     popd
     # Required for core-dump analysis
     # rm -rf Percona-XtraDB-Cluster || true

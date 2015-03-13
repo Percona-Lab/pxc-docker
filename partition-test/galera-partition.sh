@@ -156,6 +156,7 @@ runc(){
 
 }
 
+
 cleanup(){
     local cnt
     set +e 
@@ -163,8 +164,9 @@ cleanup(){
 
 
     for s in `seq 1 $NUMC`;do 
-        docker logs -t Dock$s > $LOGDIR/Dock$s.log
+        docker logs -t Dock$s &>$LOGDIR/Dock$s.log
     done
+
 
     docker logs -t dnscluster > $LOGDIR/dnscluster.log
     if [[ $SHUTDN == 'yes' ]];then 
@@ -175,10 +177,16 @@ cleanup(){
         echo "Removing containers"
         runum "docker rm -f " &>/dev/null
     fi
-    tar cvzf $TMPD/results-${BUILD_NUMBER}.tar.gz $LOGDIR  
     pkill -9 -f socat
     rm -rf $SOCKPATH && mkdir -p $SOCKPATH
     #rm -rf $LOGDIR
+
+    now=$(date +%s)
+    for s in `seq 1 $NUMC`;do 
+        sudo journalctl --since=$(( then-now )) | grep  "Dock${s}-" > $LOGDIR/journald-Dock${s}.log
+    done
+    sudo journalctl -b  > $LOGDIR/journald-all.log
+    tar cvzf $TMPD/results-${BUILD_NUMBER}.tar.gz $LOGDIR  
     set -e 
 
     echo "Checking for core files"
@@ -187,12 +195,14 @@ cleanup(){
         echo "Core files found"
         for cor in $COREDIR/*.core;do 
             cnt=$(cut -d. -f1 <<< $cor)
-            sudo gdb $NBASE/bin/mysqld --quiet --batch --core=$cor -ex "set logging file $LOGDIR/$cnt.trace" --command=backtrace.gdb
+            sudo gdb $NBASE/bin/mysqld --quiet --batch --core=$cor -ex "set logging file $LOGDIR/$cnt.trace" --command=../backtrace.gdb
         done 
     fi
 
-}
+    pgid=$(ps -o pgid= $$ | grep -o '[0-9]*')
+    kill -TERM -$pgid || true
 
+}
 mshutdown(){ 
 
     faildown=""
@@ -281,7 +291,7 @@ preclean
 
 if [[ $skip == "false" ]];then
     pushd ../docker-tarball
-    docker build  --rm -q  -t ronin/pxc:tarball -f Dockerfile.centos7-64 . 2>&1 | tee $LOGDIR/Dock-pxc.log 
+    docker build  --rm -t ronin/pxc:tarball -f Dockerfile.centos7-64 . 2>&1 | tee $LOGDIR/Dock-pxc.log 
     popd
     # Required for core-dump analysis
     # rm -rf Percona-XtraDB-Cluster || true
