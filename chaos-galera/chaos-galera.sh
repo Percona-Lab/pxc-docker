@@ -62,8 +62,8 @@ if [[ $NUMC -lt 3 ]];then
 fi
 
 # Hack for jenkins only. uh.. 
-if [[ -n ${BUILD_NUMBER:-} && $(groups) != *wheel* ]]; then
-    exec sg wheel "$0 $*"
+if [[ -n ${BUILD_NUMBER:-} && $(groups) != *docker* ]]; then
+    exec sg docker "$0 $*"
 fi
 
 if [[ $PROVIDER == '1' ]];then 
