@@ -63,7 +63,7 @@ fi
 if [[ $PROVIDER == '1' ]];then 
     CMD+=" --wsrep-provider=/pxc/libgalera_smm.so"
     PGALERA=" -v $PWD/libgalera_smm.so:/pxc/libgalera_smm.so -v /tmp/my.cnf:/pxc/my.cnf"
-    cp -v $PWD/libgalera_smm.so /pxc/
+    #cp -v $PWD/libgalera_smm.so /pxc/
 else 
     PGALERA="-v /tmp/my.cnf:/pxc/my.cnf"
 fi
