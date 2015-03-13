@@ -489,6 +489,11 @@ done
 
 echo "Running sysbench while nodes $nd are down"
 
+
+for x in ${intf[@]};do 
+    runc Dock$x  mysqladmin shutdown
+done
+
 docker stop -t 10 $nd
 
 set -x
