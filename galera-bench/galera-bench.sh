@@ -249,7 +249,11 @@ spawn_sock(){
     hostr=$(cut -d: -f1 <<< $hostt)
     portr=$(cut -d: -f2 <<< $hostt)
     local socket=$SOCKPATH/${cnt}.sock
-    socat UNIX-LISTEN:${socket},fork,reuseaddr TCP:$hostr:$portr &
+    [[ -f $socket ]] && {
+        pkill -9 -f $socket
+        rm -f $socket
+    }
+    socat UNIX-LISTEN:${socket},fork,reuseaddr TCP:$hostr:$portr 2>>$LOGDIR/socat-${cnt}.log &
     echo "$cnt also listening on $socket for $hostr:$portr" 
     if [[ -z $SOCKS ]];then 
         SOCKS="$socket"
@@ -472,7 +476,13 @@ sysbench --test=$LPATH/parallel_prepare.lua ---report-interval=10  --oltp-auto-i
 
 
 nd=""
-intf=(`shuf -i 2-$NUMC -n 2`)
+
+if [[ $NUMC -eq 3 ]];then 
+    intf=(`shuf -i 2-$NUMC -n 1`)
+else 
+    intf=(`shuf -i 2-$NUMC -n 2`)
+fi
+
 for x in ${intf[@]};do 
     nd+=" Dock${x} "
 done
