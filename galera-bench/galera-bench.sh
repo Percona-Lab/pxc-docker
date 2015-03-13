@@ -579,7 +579,7 @@ for s in `seq 1 $NUMC`;do
 
     for x in `seq 1 $TCOUNT`;do
         echo "For table test.sbtest$x from node Dock${s}" | tee -a $LOGDIR/sanity.log
-        (mysql -S $SOCKPATH/Dock${s}.sock -u root -e "select count(*) from test.sbtest$x" || exitfatal=1) | tee -a $LOGDIR/sanity.log 
+        mysql -S $SOCKPATH/Dock${s}.sock -u root -e "select count(*) from test.sbtest$x" 2>>$LOGDIR/sanity.log || exitfatal=1
     done 
 done
 
