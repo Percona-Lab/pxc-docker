@@ -513,8 +513,8 @@ for x in ${intf[@]};do
 done 
 
 
-echo "Sleeping to avoid error 2013"
-sleep 10 
+#echo "Sleeping to avoid error 2013"
+#sleep 10 
 
 
 for s in `seq 1 $NUMC`;do 
