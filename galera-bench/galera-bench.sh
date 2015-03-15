@@ -480,7 +480,7 @@ nd=""
 if [[ $NUMC -eq 3 ]];then 
     intf=(`shuf -i 2-$NUMC -n 1`)
 else 
-    intf=(`shuf -i 2-$NUMC -n 2`)
+    intf=(`shuf -i 2-$NUMC -n $(( NUMC/2 - 1 ))`)
 fi
 
 for x in ${intf[@]};do 
@@ -489,17 +489,18 @@ done
 
 echo "Running sysbench while nodes $nd are down"
 
+set -x
+(    timeout -k9 $(( STSLEEP+200 )) sysbench --test=$SDIR/$STEST.lua --db-driver=mysql --mysql-db=test --mysql-engine-trx=yes --mysql-table-engine=innodb --mysql-socket=$FIRSTSOCK --mysql-user=root  --num-threads=$NUMT --init-rng=on --max-requests=1870000000    --max-time=$STSLEEP  --oltp_index_updates=20 --oltp_non_index_updates=20 --oltp-auto-inc=$AUTOINC --oltp_distinct_ranges=15 --report-interval=1  --oltp_tables_count=$TCOUNT run 2>&1 | tee $LOGDIR/sysbench_rw_run-2.txt ) &
+
+set +x
 
 for x in ${intf[@]};do 
     runc Dock$x  mysqladmin shutdown
+    sleep 2
 done
 
-docker stop -t 10 $nd
+docker stop -t 60 $nd || true
 
-set -x
-    timeout -k9 $(( STSLEEP+200 )) sysbench --test=$SDIR/$STEST.lua --db-driver=mysql --mysql-db=test --mysql-engine-trx=yes --mysql-table-engine=innodb --mysql-socket=$FIRSTSOCK --mysql-user=root  --num-threads=$NUMT --init-rng=on --max-requests=1870000000    --max-time=$STSLEEP  --oltp_index_updates=20 --oltp_non_index_updates=20 --oltp-auto-inc=$AUTOINC --oltp_distinct_ranges=15 --report-interval=1  --oltp_tables_count=$TCOUNT run 2>&1 | tee $LOGDIR/sysbench_rw_run-2.txt
-
-set +x
 
 echo "Starting nodes $nd again"
 
@@ -510,6 +511,7 @@ done
 for x in ${intf[@]};do 
     wait_for_up Dock${x}
     spawn_sock Dock${x}
+    sleep 1
 done 
 
 
