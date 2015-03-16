@@ -482,6 +482,7 @@ if [[ $NUMC -eq 3 ]];then
 else 
     intf=(`shuf -i 2-$NUMC -n $(( NUMC/2 - 1 ))`)
 fi
+nume=${#intf[@]}
 
 for x in ${intf[@]};do 
     nd+=" Dock${x} "
@@ -496,7 +497,7 @@ set +x
 
 for x in ${intf[@]};do 
     runc Dock$x  mysqladmin shutdown
-    sleep $(( RANDOM % $#intf + 1 ))
+    sleep $(( RANDOM % $nume + 1 ))
 done
 
 docker stop -t 60 $nd || true
@@ -506,7 +507,7 @@ echo "Starting nodes $nd again"
 
 for x in ${intf[@]};do 
     docker restart -t 1 Dock${x}
-    sleep $(( RANDOM % $#intf + 1 ))
+    sleep $(( RANDOM % $nume + 1 ))
 done 
 
 for x in ${intf[@]};do 
