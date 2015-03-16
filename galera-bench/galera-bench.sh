@@ -496,7 +496,7 @@ set +x
 
 for x in ${intf[@]};do 
     runc Dock$x  mysqladmin shutdown
-    sleep 2
+    sleep $(( RANDOM % $#intf + 1 ))
 done
 
 docker stop -t 60 $nd || true
@@ -506,6 +506,7 @@ echo "Starting nodes $nd again"
 
 for x in ${intf[@]};do 
     docker restart -t 1 Dock${x}
+    sleep $(( RANDOM % $#intf + 1 ))
 done 
 
 for x in ${intf[@]};do 
@@ -515,8 +516,6 @@ for x in ${intf[@]};do
 done 
 
 
-#echo "Sleeping to avoid error 2013"
-#sleep 10 
 
 
 for s in `seq 1 $NUMC`;do 
@@ -583,8 +582,8 @@ echo "Sanity queries"
 for s in `seq 1 $NUMC`;do 
 
     for x in `seq 1 $TCOUNT`;do
-        echo "For table test.sbtest$x from node Dock${s}" | tee -a $LOGDIR/sanity.log
-        mysql -h $(docker port Dock${s} 3306 | cut -d: -f1) -P $(docker port Dock${s} 3306 | cut -d: -f2)  -u root -e "select count(*) from test.sbtest$x" 2>>$LOGDIR/sanity.log || exitfatal=1
+        echo "For table test.sbtest$x from node Dock${s}" &>>$LOGDIR/sanity.log
+        mysql -h $(docker port Dock${s} 3306 | cut -d: -f1) -P $(docker port Dock${s} 3306 | cut -d: -f2)  -u root -e "select count(*) from test.sbtest$x" &>>$LOGDIR/sanity.log || exitfatal=1
     done 
 done
 
