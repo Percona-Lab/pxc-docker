@@ -18,6 +18,7 @@ RANDOM=$$
 BUILD_NUMBER=${BUILD_NUMBER:-$RANDOM}
 SLEEPCNT=${SLEEPCNT:-10}
 FSYNC=${FSYNC:-0}
+STOSLEEP=${STOSLEEP:-}
 
 TMPD=${TMPDIR:-/tmp}
 COREDIR=${COREDIR:-/var/crash}
@@ -497,7 +498,7 @@ set +x
 
 for x in ${intf[@]};do 
     runc Dock$x  mysqladmin shutdown
-    sleep $(( RANDOM % $nume + 1 ))
+    sleep ${STOSLEEP:-$(( RANDOM % $nume + 1 ))}
 done
 
 docker stop -t 60 $nd || true
@@ -507,7 +508,7 @@ echo "Starting nodes $nd again"
 
 for x in ${intf[@]};do 
     docker restart -t 1 Dock${x}
-    sleep $(( RANDOM % $nume + 1 ))
+    sleep ${STOSLEEP:-$(( RANDOM % $nume + 1 ))}
 done 
 
 for x in ${intf[@]};do 
