@@ -57,6 +57,13 @@ if [[ $NUMC -lt 3 ]];then
     exit 1
 fi
 
+if [[ $RSEGMENT == "1" ]];then 
+    SEGMENT=$(( RANDOM % (NUMC/2) ))
+else 
+    SEGMENT=0
+fi
+
+
 if [[ -n ${ADDOP:-} ]];then 
    ADDOP="gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1; gcache.size=256M; $ADDOP"
 else 
@@ -316,10 +323,7 @@ echo "Starting first node"
 declare -a segloss
 
 if [[ $RSEGMENT == "1" ]];then 
-    SEGMENT=$(( RANDOM % (NUMC/2) ))
     segloss[0]=$(( SEGMENT+1 ))
-else 
-    SEGMENT=0
 fi
 
 if [[ $FSYNC == '0' || $VSYNC == '1' ]];then 
