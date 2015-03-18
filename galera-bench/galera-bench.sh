@@ -503,20 +503,24 @@ set -x
 
 set +x
 
+set -x
 for x in ${intf[@]};do 
     runc Dock$x  mysqladmin shutdown
     sleep ${STOSLEEP:-$(( RANDOM % $nume + 1 ))}
 done
+set +x
 
 docker stop -t 60 $nd || true
 
 
 echo "Starting nodes $nd again"
 
+set -x
 for x in ${intf[@]};do 
     docker restart -t 1 Dock${x}
     sleep ${STOSLEEP:-$(( RANDOM % $nume + 1 ))}
 done 
+set +x
 
 for x in ${intf[@]};do 
     wait_for_up Dock${x}
