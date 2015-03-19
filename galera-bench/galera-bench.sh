@@ -190,7 +190,7 @@ cleanup(){
     done
 
     echo "Copying trace files"
-    cp -v $COREDIR/*.trace $LOGDIR/
+    cp -v $COREDIR/*.trace $LOGDIR/ || true
 
 
     docker logs -t dnscluster > $LOGDIR/dnscluster.log

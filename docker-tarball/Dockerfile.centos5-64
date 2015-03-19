@@ -6,7 +6,7 @@ RUN curl -s http://www.percona.com/downloads/percona-release/redhat/0.1-3/percon
 RUN curl -s http://www.mirrorservice.org/sites/dl.fedoraproject.org/pub/epel/5/i386/epel-release-5-4.noarch.rpm > /tmp/epel-release-5-4.noarch.rpm 
 RUN yum install -y --nogpgcheck /tmp/percona-release-0.1-3.noarch.rpm 
 RUN yum install -y --nogpgcheck /tmp/epel-release-5-4.noarch.rpm 
-RUN yum install -y which lsof libaio socat percona-xtrabackup perl-DBD-MySQL perl-DBI rsync eatmydata pv qpress gzip gdb
+RUN yum install -y which lsof libaio socat percona-xtrabackup perl-DBD-MySQL perl-DBI rsync eatmydata pv qpress gzip gdb hostname
 ADD Percona-XtraDB-Cluster /pxc
 RUN mkdir -p /pxc/datadir
 ADD node.cnf /etc/my.cnf
