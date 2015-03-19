@@ -30,7 +30,7 @@ HOSTSF="$PWD/hosts"
 VSYNC=${VSYNC:-1}
 CATAL=${COREONFATAL:-0}
 
-
+DIMAGE="ronin/pxc:tarball-$PLATFORM"
 SOCKS=""
 SOCKPATH="/tmp/pxc-socks"
 
@@ -65,9 +65,9 @@ fi
 
 
 if [[ -n ${ADDOP:-} ]];then 
-   ADDOP="gmcast.segment=$SEGMENT; gcache.size=256M; $ADDOP"
+   ADDOP="gcache.size=256M; $ADDOP"
 else 
-   ADDOP="gmcast.segment=$SEGMENT; gcache.size=256M"
+   ADDOP="gcache.size=256M"
 fi
 
 # Hack for jenkins only. uh.. 
@@ -303,7 +303,7 @@ preclean
 
 if [[ $skip == "false" ]];then
     pushd ../docker-tarball
-    docker build  --rm  -t ronin/pxc:tarball-$PLATFORM -f Dockerfile.$PLATFORM . 2>&1 | tee $LOGDIR/Dock-pxc.log 
+    docker build  --rm  -t $DIMAGE -f Dockerfile.$PLATFORM . 2>&1 | tee $LOGDIR/Dock-pxc.log 
     popd
     # Required for core-dump analysis
     # rm -rf Percona-XtraDB-Cluster || true
@@ -339,7 +339,7 @@ else
     PRELOAD=""
 fi
 
-docker run -P -e LD_PRELOAD=$PRELOAD -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:$icoredir $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='$ADDOP'" &>/dev/null
+docker run -P -e LD_PRELOAD=$PRELOAD -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:$icoredir $PGALERA   --dns $dnsi --name Dock1 $DIMAGE bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='$ADDOP'" &>/dev/null
 
 wait_for_up Dock1
 spawn_sock Dock1
@@ -380,7 +380,7 @@ for rest in `seq 2 $NUMC`; do
     else 
         PRELOAD=""
     fi
-    docker run -P -e LD_PRELOAD=$PRELOAD  -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:$icoredir $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='$ADDOP'" &>/dev/null
+    docker run -P -e LD_PRELOAD=$PRELOAD  -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:$icoredir $PGALERA --dns $dnsi --name Dock$rest $DIMAGE bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='$ADDOP'" &>/dev/null
     #CSTR="${CSTR},Dock${rest}"
 
     if [[ $(docker inspect  Dock$rest | grep IPAddress | grep -oE '[0-9\.]+') != $nexti ]];then 
