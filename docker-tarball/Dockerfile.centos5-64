@@ -10,6 +10,7 @@ RUN yum install -y which lsof libaio socat percona-xtrabackup perl-DBD-MySQL per
 ADD Percona-XtraDB-Cluster /pxc
 RUN mkdir -p /pxc/datadir
 ADD node.cnf /etc/my.cnf
+ADD backtrace.gdb /backtrace.gdb
 RUN groupadd -r mysql
 RUN useradd -M -r -d /pxc/datadir -s /bin/bash -c "MySQL server" -g mysql mysql
 EXPOSE 3306 4567 4568

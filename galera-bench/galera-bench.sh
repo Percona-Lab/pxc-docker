@@ -43,6 +43,7 @@ SDIR="$LPATH"
 export PATH="/usr/sbin:$PATH"
 
 linter="eth0"
+icoredir="/pxc/crash"
 
 FIRSTD=$(cut -d" " -f1 <<< $DELAY | tr -d 'ms')
 RESTD=$(cut -d" " -f2- <<< $DELAY)
@@ -169,11 +170,27 @@ cleanup(){
     local cnt
     set +e 
 
+    if [[ "$(ls -A $COREDIR)" ]];then
+        echo "Core files found"
+        for cor in $COREDIR/*.core;do 
+            cnt=$(cut -d. -f1 <<< $cor)
+            cor=$(basename $cor)
+            if docker top Dock${cnt} &>/dev/null;then
+                docker exec Dock${cnt} gdb /pxc/bin/mysqld --quiet --batch --core=$icoredir/$cor -ex "set logging file $icoredir/Dock${cnt}.trace"  --command=/backtrace.gdb
+            else 
+                docker start Dock${cnt}
+                docker exec Dock${cnt} gdb /pxc/bin/mysqld --quiet --batch --core=$icoredir/$cor -ex "set logging file $icoredir/Dock${cnt}.trace"  --command=/backtrace.gdb
+            fi
+        done 
+    fi
 
 
     for s in `seq 1 $NUMC`;do 
         docker logs -t Dock$s &>$LOGDIR/Dock$s.log
     done
+
+    echo "Copying trace files"
+    cp -v $COREDIR/*.trace $LOGDIR/
 
 
     docker logs -t dnscluster > $LOGDIR/dnscluster.log
@@ -197,15 +214,6 @@ cleanup(){
     tar cvzf $TMPD/results-${BUILD_NUMBER}.tar.gz $LOGDIR  
     set -e 
 
-    echo "Checking for core files"
-
-    if [[ "$(ls -A $COREDIR)" ]];then
-        echo "Core files found"
-        for cor in $COREDIR/*.core;do 
-            cnt=$(cut -d. -f1 <<< $cor)
-            sudo gdb $NBASE/bin/mysqld --quiet --batch --core=$cor -ex "set logging file $LOGDIR/$cnt.trace" --command=../backtrace.gdb
-        done 
-    fi
 
 }
 
@@ -296,7 +304,7 @@ preclean
 
 if [[ $skip == "false" ]];then
     pushd ../docker-tarball
-    docker build  --rm  -t ronin/pxc:tarball -f Dockerfile.$PLATFORM . 2>&1 | tee $LOGDIR/Dock-pxc.log 
+    docker build  --rm  -t ronin/pxc:tarball-$PLATFORM -f Dockerfile.$PLATFORM . 2>&1 | tee $LOGDIR/Dock-pxc.log 
     popd
     # Required for core-dump analysis
     # rm -rf Percona-XtraDB-Cluster || true
@@ -332,7 +340,7 @@ else
     PRELOAD=""
 fi
 
-docker run -P -e LD_PRELOAD=$PRELOAD -e FORCE_FTWRL=$FORCE_FTWRL  -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:/pxc/crash $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='$ADDOP'" &>/dev/null
+docker run -P -e LD_PRELOAD=$PRELOAD -e FORCE_FTWRL=$FORCE_FTWRL  -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:$icoredir $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='$ADDOP'" &>/dev/null
 
 wait_for_up Dock1
 spawn_sock Dock1
@@ -373,7 +381,7 @@ for rest in `seq 2 $NUMC`; do
     else 
         PRELOAD=""
     fi
-    docker run -P -e LD_PRELOAD=$PRELOAD -e FORCE_FTWRL=$FORCE_FTWRL -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:/pxc/crash $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 /pxc/crash && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='$ADDOP'" &>/dev/null
+    docker run -P -e LD_PRELOAD=$PRELOAD -e FORCE_FTWRL=$FORCE_FTWRL -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:$icoredir $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='$ADDOP'" &>/dev/null
     #CSTR="${CSTR},Dock${rest}"
 
     if [[ $(docker inspect  Dock$rest | grep IPAddress | grep -oE '[0-9\.]+') != $nexti ]];then 
