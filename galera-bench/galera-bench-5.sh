@@ -33,7 +33,6 @@ CATAL=${COREONFATAL:-0}
 
 SOCKS=""
 SOCKPATH="/tmp/pxc-socks"
-FORCE_FTWRL=${FORCE_FTWRL:-0}
 
 if [[ ${BDEBUG:-0} -eq 1 ]];then 
     set -x
@@ -340,7 +339,7 @@ else
     PRELOAD=""
 fi
 
-docker run -P -e LD_PRELOAD=$PRELOAD -e FORCE_FTWRL=$FORCE_FTWRL  -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:$icoredir $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='$ADDOP'" &>/dev/null
+docker run -P -e LD_PRELOAD=$PRELOAD -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:$icoredir $PGALERA   --dns $dnsi --name Dock1 ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='$ADDOP'" &>/dev/null
 
 wait_for_up Dock1
 spawn_sock Dock1
@@ -381,7 +380,7 @@ for rest in `seq 2 $NUMC`; do
     else 
         PRELOAD=""
     fi
-    docker run -P -e LD_PRELOAD=$PRELOAD -e FORCE_FTWRL=$FORCE_FTWRL -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:$icoredir $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='$ADDOP'" &>/dev/null
+    docker run -P -e LD_PRELOAD=$PRELOAD  -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:$icoredir $PGALERA --dns $dnsi --name Dock$rest ronin/pxc:tarball bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='$ADDOP'" &>/dev/null
     #CSTR="${CSTR},Dock${rest}"
 
     if [[ $(docker inspect  Dock$rest | grep IPAddress | grep -oE '[0-9\.]+') != $nexti ]];then 
