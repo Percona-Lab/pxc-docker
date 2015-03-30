@@ -538,6 +538,8 @@ set -x
 
 set +x
 
+sleep 5
+
 set -x
 for x in ${intf[@]};do 
     runc Dock$x  mysqladmin shutdown
