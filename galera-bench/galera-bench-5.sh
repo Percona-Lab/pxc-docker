@@ -63,8 +63,8 @@ else
     SEGMENT=0
 fi
 
-BASEP="gcache.size=256M;"
-BASEP3="gcache.size=256M; socket.checksum=1;"
+BASEP="gcache.size=256M"
+BASEP3="gcache.size=256M; socket.checksum=1"
 
 #if [[ $MIXED -eq 1 ]];then 
     #BASEP="gcache.size=256M; socket.checksum=1"
@@ -72,10 +72,21 @@ BASEP3="gcache.size=256M; socket.checksum=1;"
     #BASEP="gcache.size=256M"
 #fi
 
-if [[ -n ${ADDOP:-} ]];then 
-   ADDLOP="$BASEP; $ADDOP"
+if [[ $GALERA_VER -eq 2 ]];then 
+    if [[ -n ${ADDOP:-} ]];then 
+        ADDLOP="$BASEP; $ADDOP"
+    else 
+        ADDLOP="$BASEP"
+    fi
+elif [[ $GALERA_VER -eq 3 ]];then 
+    if [[ -n ${ADDOP:-} ]];then 
+        ADDLOP="$BASEP3; $ADDOP"
+    else 
+        ADDLOP="$BASEP3"
+    fi
 else 
-   ADDLOP="$BASEP"
+    echo "Error: $GALERA_VER needs to be 2 or 3"
+    exit 4
 fi
 
 # Hack for jenkins only. uh.. 
