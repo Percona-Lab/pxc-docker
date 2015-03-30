@@ -64,7 +64,7 @@ else
 fi
 
 BASEP="gcache.size=256M;"
-BASEP3="gcache.size=256M; socket.checksum=1"
+BASEP3="gcache.size=256M; socket.checksum=1;"
 
 #if [[ $MIXED -eq 1 ]];then 
     #BASEP="gcache.size=256M; socket.checksum=1"
@@ -394,8 +394,13 @@ for rest in `seq 2 $NUMC`; do
     fi
     if [[ $MIXED -eq 1 ]];then 
         if [[ $(( NUMC%2 )) -eq 0 ]];then 
+            echp "Using galera3 for Dock${NUMC}"
             PGALERA=" -v $PWD/libgalera_smm_3.so:/pxc/libgalera_smm.so -v /tmp/my.cnf:/pxc/my.cnf"
-            BASEP="gcache.size=256M; socket.checksum=1"
+            if [[ -n ${ADDOP:-} ]];then 
+                ADDLOP="$BASEP3; $ADDOP"
+            else 
+                ADDLOP="$BASEP3"
+            fi
         fi
     fi
     docker run -P -e LD_PRELOAD=$PRELOAD  -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:$icoredir $PGALERA --dns $dnsi --name Dock$rest $DIMAGE bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='$ADDLOP'" &>/dev/null
