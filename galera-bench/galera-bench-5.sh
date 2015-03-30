@@ -85,12 +85,10 @@ fi
 
 if [[ $PROVIDER == '1' ]];then 
     CMD+=" --wsrep-provider=/pxc/libgalera_smm.so"
-    if [[ $MIXED -ne 1 ]];then 
-        if [[ $GALERA_VER -eq 2 ]];then 
-            PGALERA=" -v $PWD/libgalera_smm.so:/pxc/libgalera_smm.so -v /tmp/my.cnf:/pxc/my.cnf"
-        else 
-            PGALERA=" -v $PWD/libgalera_smm_3.so:/pxc/libgalera_smm.so -v /tmp/my.cnf:/pxc/my.cnf"
-        fi
+    if [[ $GALERA_VER -eq 2 ]];then 
+        PGALERA=" -v $PWD/libgalera_smm.so:/pxc/libgalera_smm.so -v /tmp/my.cnf:/pxc/my.cnf"
+    else 
+        PGALERA=" -v $PWD/libgalera_smm_3.so:/pxc/libgalera_smm.so -v /tmp/my.cnf:/pxc/my.cnf"
     fi
     #cp -v $PWD/libgalera_smm.so /pxc/
 else 
