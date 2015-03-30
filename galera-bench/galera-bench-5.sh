@@ -63,11 +63,19 @@ else
     SEGMENT=0
 fi
 
+BASEP="gcache.size=256M;"
+BASEP3="gcache.size=256M; socket.checksum=1"
+
+#if [[ $MIXED -eq 1 ]];then 
+    #BASEP="gcache.size=256M; socket.checksum=1"
+#else 
+    #BASEP="gcache.size=256M"
+#fi
 
 if [[ -n ${ADDOP:-} ]];then 
-   ADDOP="gcache.size=256M; $ADDOP"
+   ADDLOP="$BASEP; $ADDOP"
 else 
-   ADDOP="gcache.size=256M"
+   ADDLOP="$BASEP"
 fi
 
 # Hack for jenkins only. uh.. 
@@ -77,7 +85,13 @@ fi
 
 if [[ $PROVIDER == '1' ]];then 
     CMD+=" --wsrep-provider=/pxc/libgalera_smm.so"
-    PGALERA=" -v $PWD/libgalera_smm.so:/pxc/libgalera_smm.so -v /tmp/my.cnf:/pxc/my.cnf"
+    if [[ $MIXED -ne 1 ]];then 
+        if [[ $GALERA_VER -eq 2 ]];then 
+            PGALERA=" -v $PWD/libgalera_smm.so:/pxc/libgalera_smm.so -v /tmp/my.cnf:/pxc/my.cnf"
+        else 
+            PGALERA=" -v $PWD/libgalera_smm_3.so:/pxc/libgalera_smm.so -v /tmp/my.cnf:/pxc/my.cnf"
+        fi
+    fi
     #cp -v $PWD/libgalera_smm.so /pxc/
 else 
     PGALERA="-v /tmp/my.cnf:/pxc/my.cnf"
@@ -339,7 +353,7 @@ else
     PRELOAD=""
 fi
 
-docker run -P -e LD_PRELOAD=$PRELOAD -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:$icoredir $PGALERA   --dns $dnsi --name Dock1 $DIMAGE bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='$ADDOP'" &>/dev/null
+docker run -P -e LD_PRELOAD=$PRELOAD -e SST_SYSLOG_TAG=Dock1  -d  -i -v /dev/log:/dev/log -h Dock1 -v $COREDIR:$icoredir $PGALERA   --dns $dnsi --name Dock1 $DIMAGE bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep-new-cluster --wsrep-provider-options='$ADDLOP'" &>/dev/null
 
 wait_for_up Dock1
 spawn_sock Dock1
@@ -380,7 +394,13 @@ for rest in `seq 2 $NUMC`; do
     else 
         PRELOAD=""
     fi
-    docker run -P -e LD_PRELOAD=$PRELOAD  -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:$icoredir $PGALERA --dns $dnsi --name Dock$rest $DIMAGE bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='$ADDOP'" &>/dev/null
+    if [[ $MIXED -eq 1 ]];then 
+        if [[ $(( NUMC%2 )) -eq 0 ]];then 
+            PGALERA=" -v $PWD/libgalera_smm_3.so:/pxc/libgalera_smm.so -v /tmp/my.cnf:/pxc/my.cnf"
+            BASEP="gcache.size=256M; socket.checksum=1"
+        fi
+    fi
+    docker run -P -e LD_PRELOAD=$PRELOAD  -d  -v /dev/log:/dev/log -i -e SST_SYSLOG_TAG=Dock${rest} -h Dock$rest -v $COREDIR:$icoredir $PGALERA --dns $dnsi --name Dock$rest $DIMAGE bash -c "ulimit -c unlimited && chmod 777 $icoredir && $CMD $ECMD --wsrep_cluster_address=$CSTR --wsrep_node_name=Dock$rest --wsrep-provider-options='$ADDLOP'" &>/dev/null
     #CSTR="${CSTR},Dock${rest}"
 
     if [[ $(docker inspect  Dock$rest | grep IPAddress | grep -oE '[0-9\.]+') != $nexti ]];then 
