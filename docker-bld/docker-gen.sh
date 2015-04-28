@@ -7,8 +7,8 @@ branch="$1"
 
 if [[ -z $branch ]];then 
     echo "Please provide branch as first argument"
-    echo "Using  master  as default"
-    branch="master"
+    echo "Using  5.6 as default"
+    branch="5.6"
     echo 
     echo
 fi

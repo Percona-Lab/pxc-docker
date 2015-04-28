@@ -3,6 +3,7 @@
 
 
 tree="$1"
+btree=$(basename $tree)
 
 if [[ -z tree ]];then 
     echo "Please provide tree as first argument - full path"
@@ -16,7 +17,10 @@ numcp=$(( numcp-1 ))
 
 
 if [[ -d $tree/.git ]];then 
-    git archive --format=tar --prefix=$(basename $tree)/ HEAD | tar xf -
+    pushd $tree
+    git archive --format=tar --prefix=$btree/ HEAD | (cd /tmp && tar xf -)
+    popd
+    mv /tmp/$btree . 
 else 
     cp -a $tree .
 fi
@@ -31,7 +35,7 @@ RUN yum install -y which lsof libaio compat-readline5 socat percona-xtrabackup p
 RUN yum install -y bzr automake gcc  make  libtool autoconf pkgconfig gettext git scons    boost_req boost-devel libaio openssl-devel  check-devel gdb perf
 RUN yum install -y gcc-c++ gperf ncurses-devel perl readline-devel time zlib-devel libaio-devel bison cmake 
 RUN yum install -y coreutils grep procps 
-ADD $(basename $tree) /percona-xtradb-cluster
+ADD $btree /percona-xtradb-cluster
 WORKDIR /percona-xtradb-cluster 
 RUN cmake -DBUILD_CONFIG=mysql_release -DDEBUG_EXTNAME=OFF -DWITH_ZLIB=system  -DWITH_SSL=system -DCMAKE_INSTALL_PREFIX="/usr"   .
 RUN make -j${numcp}
