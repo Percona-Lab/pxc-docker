@@ -1,14 +1,14 @@
-You can either run with fig.yml or with fig-build.yml as:
+You can either run with docker-compose.yml or with docker-compose-build.yml as:
 
-fig.yml
+docker-compose.yml
 ---
 
-fig scale bootstrap=1 members=<N>     where N is a number.
+docker-compose scale bootstrap=1 members=<N>     where N is a number.
 
 
-fig-build.yml
+docker-compose-build.yml
 ---
-FIG_FILE=fig-build.yml fig scale bootstrap=1 members=<N>
+COMPOSE_FILE=docker-compose-build.yml docker-compose scale bootstrap=1 members=<N>
 
 
-The difference between fig.yml and fig-build.yml being that with former ronin/pxc:centos7 image is used, while with latter the image is built.
+The difference between docker-compose.yml and docker-compose-build.yml being that with former ronin/pxc:centos7 image is used, while with latter the image is built.
