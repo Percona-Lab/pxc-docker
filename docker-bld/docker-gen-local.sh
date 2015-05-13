@@ -55,6 +55,6 @@ CMD  /usr/bin/mysqld --basedir=/usr --wsrep-new-cluster --user=mysql --core-file
 
 " > Dockerfile 
 
-echo "Use:> fig scale bootstrap=1 members=2 for a 3 node cluster!"
+echo "Use:> docker-compose scale bootstrap=1 members=2 for a 3 node cluster!"
 
 
