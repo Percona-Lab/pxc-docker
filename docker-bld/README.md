@@ -3,7 +3,7 @@ This is for PXC internal development only!
 How to:
 ============
 
-a) ./docker-gen.sh lp:percona-xtradb-cluster     (docker-gen.sh takes a PXC branch as argument)
+a) ./docker-gen.sh 5.6    (docker-gen.sh takes a PXC branch as argument, 5.6 is default, and it looks for it on github.com/percona/percona-xtradb-cluster)
 
 b) Optional: docker-compose build (if you see it is not updating with changes).
 
