@@ -173,8 +173,8 @@ cleanup(){
     if [[ "$(ls -A $COREDIR)" ]];then
         echo "Core files found"
         for cor in $COREDIR/*.core;do 
-            cnt=$(cut -d. -f1 <<< $cor)
             cor=$(basename $cor)
+            cnt=$(cut -d. -f1 <<< $cor)
             if docker top Dock${cnt} &>/dev/null;then
                 docker exec Dock${cnt} gdb /pxc/bin/mysqld --quiet --batch --core=$icoredir/$cor -ex "set logging file $icoredir/Dock${cnt}.trace"  --command=/backtrace.gdb
             else 
