@@ -175,11 +175,11 @@ cleanup(){
         for cor in $COREDIR/*.core;do 
             cor=$(basename $cor)
             cnt=$(cut -d. -f1 <<< $cor)
-            if docker top Dock${cnt} &>/dev/null;then
-                docker exec Dock${cnt} gdb /pxc/bin/mysqld --quiet --batch --core=$icoredir/$cor -ex "set logging file $icoredir/Dock${cnt}.trace"  --command=/backtrace.gdb
+            if docker top ${cnt} &>/dev/null;then
+                docker exec ${cnt} gdb /pxc/bin/mysqld --quiet --batch --core=$icoredir/$cor -ex "set logging file $icoredir/${cnt}.trace"  --command=/backtrace.gdb
             else 
-                docker start Dock${cnt}
-                docker exec Dock${cnt} gdb /pxc/bin/mysqld --quiet --batch --core=$icoredir/$cor -ex "set logging file $icoredir/Dock${cnt}.trace"  --command=/backtrace.gdb
+                docker start ${cnt}
+                docker exec ${cnt} gdb /pxc/bin/mysqld --quiet --batch --core=$icoredir/$cor -ex "set logging file $icoredir/${cnt}.trace"  --command=/backtrace.gdb
             fi
         done 
     fi
