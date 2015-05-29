@@ -541,7 +541,7 @@ for x in ${intf[@]};do
 done 
 
 
-sleep 5
+sleep 20
 
 for s in `seq 1 $NUMC`;do 
 
@@ -557,6 +557,7 @@ for s in `seq 1 $NUMC`;do
     fi
 done
 
+sleep 5
 echo "Sanity tests"
 echo "Statuses"
 maxsleep=300
@@ -601,7 +602,7 @@ while true;do
     echo
 done 
 
-
+sleep 30
 echo "Sanity queries"
 
 for s in `seq 1 $NUMC`;do 
