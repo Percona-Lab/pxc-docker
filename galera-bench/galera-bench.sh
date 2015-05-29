@@ -541,7 +541,7 @@ for x in ${intf[@]};do
 done 
 
 
-
+sleep 5
 
 for s in `seq 1 $NUMC`;do 
 
