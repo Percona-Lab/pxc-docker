@@ -19,6 +19,7 @@ BUILD_NUMBER=${BUILD_NUMBER:-$RANDOM}
 SLEEPCNT=${SLEEPCNT:-10}
 FSYNC=${FSYNC:-0}
 STOSLEEP=${STOSLEEP:-}
+IGNOR=${IGNORE_ERRORS:-""}
 
 TMPD=${TMPDIR:-/tmp}
 COREDIR=${COREDIR:-/var/crash}
@@ -359,7 +360,7 @@ mysql -S $FIRSTSOCK -u root -e "create database testdb;" || true
 nexti=$firsti
 sleep 5
 
-sysbench --test=$SDIR/$STEST.lua --db-driver=mysql --mysql-db=test --mysql-engine-trx=yes --mysql-ignore-errors=1047,1213 --mysql-table-engine=innodb --mysql-socket=$FIRSTSOCK --mysql-user=root  --num-threads=$NUMT --init-rng=on --max-requests=1870000000    --max-time=$(( NUMC*10 ))  --oltp_index_updates=20 --oltp_non_index_updates=20 --oltp-auto-inc=$AUTOINC --oltp_distinct_ranges=15 --report-interval=1  --oltp_tables_count=$TCOUNT run &>$LOGDIR/sysbench-run-0.txt & 
+sysbench --test=$SDIR/$STEST.lua --db-driver=mysql --mysql-db=test --mysql-engine-trx=yes --mysql-ignore-errors=$IGNOR --mysql-table-engine=innodb --mysql-socket=$FIRSTSOCK --mysql-user=root  --num-threads=$NUMT --init-rng=on --max-requests=1870000000    --max-time=$(( NUMC*10 ))  --oltp_index_updates=20 --oltp_non_index_updates=20 --oltp-auto-inc=$AUTOINC --oltp_distinct_ranges=15 --report-interval=1  --oltp_tables_count=$TCOUNT run &>$LOGDIR/sysbench-run-0.txt & 
 syspid=$!
 
 for rest in `seq 2 $NUMC`; do
@@ -511,7 +512,7 @@ done
 echo "Running sysbench while nodes $nd are down"
 
 set -x
-(    timeout -k9 $(( STSLEEP+200 )) sysbench --test=$SDIR/$STEST.lua --db-driver=mysql --mysql-db=test --mysql-engine-trx=yes --mysql-table-engine=innodb --mysql-socket=$FIRSTSOCK --mysql-user=root  --num-threads=$NUMT --init-rng=on --max-requests=1870000000    --max-time=$STSLEEP  --oltp_index_updates=20 --oltp_non_index_updates=20 --oltp-auto-inc=$AUTOINC --oltp_distinct_ranges=15 --report-interval=1  --oltp_tables_count=$TCOUNT run 2>&1 | tee $LOGDIR/sysbench_rw_run-2.txt ) &
+(    timeout -k9 $(( STSLEEP+200 )) sysbench --test=$SDIR/$STEST.lua --db-driver=mysql --mysql-db=test --mysql-ignore-errors=$IGNOR  --mysql-engine-trx=yes --mysql-table-engine=innodb --mysql-socket=$FIRSTSOCK --mysql-user=root  --num-threads=$NUMT --init-rng=on --max-requests=1870000000    --max-time=$STSLEEP  --oltp_index_updates=20 --oltp_non_index_updates=20 --oltp-auto-inc=$AUTOINC --oltp_distinct_ranges=15 --report-interval=1  --oltp_tables_count=$TCOUNT run 2>&1 | tee $LOGDIR/sysbench_rw_run-2.txt ) &
 
 set +x
 
