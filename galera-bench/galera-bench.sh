@@ -49,6 +49,7 @@ icoredir="/pxc/crash"
 FIRSTD=$(cut -d" " -f1 <<< $DELAY | tr -d 'ms')
 RESTD=$(cut -d" " -f2- <<< $DELAY)
 
+rm -rf /tmp/my.cnf || true
 echo "
 [sst]
 sst-initial-timeout=$(( 50*NUMC ))
