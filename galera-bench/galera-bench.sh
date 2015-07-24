@@ -129,6 +129,8 @@ else
         skip=true
     fi
 fi 
+
+rm *.tar.gz  || true
 popd
 
 #if git log --summary -1 -p  | grep -q '/Dockerfile';then 
