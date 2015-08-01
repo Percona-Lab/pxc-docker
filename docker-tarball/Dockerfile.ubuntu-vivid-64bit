@@ -1,10 +1,11 @@
 FROM ubuntu:vivid
 MAINTAINER Raghavendra Prabhu raghavendra.prabhu@percona.com
+ENV DEBIAN_FRONTEND noninteractive
 RUN apt-key adv --keyserver keys.gnupg.net --recv-keys 1C4CBDCDCD2EFD2A
 RUN echo "deb http://repo.percona.com/apt vivid main" >>  /etc/apt/sources.list
 RUN echo "deb-src http://repo.percona.com/apt vivid main" >> /etc/apt/sources.list
 RUN apt-get update 
-RUN apt-get -y --force=yes install lsof libaio1 libreadline5 socat xtrabackup rsync libssl0.9.8 pv qpress gzip gdb
+RUN apt-get install lsof libaio1 libreadline5 socat xtrabackup rsync libssl0.9.8 pv qpress gzip gdb
 ADD Percona-XtraDB-Cluster /pxc
 RUN mkdir -p /pxc/datadir
 ADD node.cnf /etc/my.cnf
