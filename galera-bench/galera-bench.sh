@@ -68,9 +68,9 @@ fi
 
 
 if [[ -n ${ADDOP:-} ]];then 
-   ADDOP="gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1; gcache.size=256M; $ADDOP"
+   ADDOP="gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1; $ADDOP"
 else 
-   ADDOP="gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1; gcache.size=256M"
+   ADDOP="gmcast.segment=$SEGMENT; evs.auto_evict=3; evs.version=1"
 fi
 
 # Hack for jenkins only. uh.. 
