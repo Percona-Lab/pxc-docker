@@ -1,4 +1,4 @@
-FROM centos:centos6
+FROM centos:centos7
 MAINTAINER Raghavendra Prabhu raghavendra.prabhu@percona.com
 RUN yum install -y dnsmasq
 RUN echo "user=root" >> /etc/dnsmasq.conf
