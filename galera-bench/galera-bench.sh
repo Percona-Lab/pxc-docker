@@ -316,9 +316,9 @@ fi
 
 CSTR="gcomm://Dock1"
 
-#for nd in `seq 2 $NUMC`;do 
-    #CSTR="${CSTR},Dock${nd}"
-#done 
+for nd in `seq 2 $NUMC`;do 
+    CSTR="${CSTR},Dock${nd}"
+done 
 
 rm -f $HOSTSF && touch $HOSTSF
 
